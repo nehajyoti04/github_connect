@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Gives site visitors the ability to log in with GitHub (http://github.com).
+ */
+
+/**
+ * Implements hook_help().
+ * @param $route_name
+ * @return \Drupal\Core\StringTranslation\TranslatableMarkup
+ */
+function github_connect_help($route_name) {
+  switch ($route_name) {
+    case 'help.page.github':
+      return t('Gives site visitors the ability to login to Drupal with their GitHub account.');
+  }
+}

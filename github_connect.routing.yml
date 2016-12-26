@@ -1,0 +1,7 @@
+github_connect.admin_config:
+  path: '/admin/config/people/github'
+  defaults:
+    _form: '\Drupal\github_connect\Form\GithubConnectAdminSettingForm'
+    _title: 'Language and Country Mapping'
+  requirements:
+    _permission: 'administer age checker settings'
