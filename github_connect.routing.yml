@@ -2,6 +2,15 @@ github_connect.admin_config:
   path: '/admin/config/people/github'
   defaults:
     _form: '\Drupal\github_connect\Form\GithubConnectAdminSettingForm'
-    _title: 'Language and Country Mapping'
+    _title: 'Github settings'
+    _description: 'Settings for connecting with Github.'
   requirements:
-    _permission: 'administer age checker settings'
+    _permission: 'administer github connect settings'
+
+github_connect.register:
+  path: '/github/register'
+  defaults:
+    _controller: '\Drupal\github_connect\Controller\GithubConnectController::github_connect_get_access_token'
+    _title: 'Connected to Github'
+  requirements:
+    _access: 'TRUE'
