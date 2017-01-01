@@ -13,6 +13,7 @@ use Drupal\Core\Block\BlockBase;
 
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 
 /**
  * Provides a 'age_calculator' block.
@@ -36,10 +37,29 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface{
    * {@inheritdoc}
    */
   public function build() {
-    $form = \Drupal::formBuilder()->getForm('Drupal\github_connect\Form\GithubConnectForm');
+    global $base_url;
+
+    if (!(\Drupal::currentUser()->isAnonymous())) {
+      return FALSE;
+    }
+
+    $client_id = \Drupal::state()->get('github_connect_client_id');
+
+    $current_request = \Drupal::service('request_stack')->getCurrentRequest();
+
+    $destination = $current_request->query->get('destination');
+
+    $option = [
+      'query' => ['client_id' => $client_id, 'scope' => 'user,public', 'uri' => urlencode($base_url . '/github/register/create?destination=' . $destination['destination'])
+      ],
+    ];
+    $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
+//    $link = Url::fromUri('https://github.com/login/oauth/authorize?client_id=');
+    $output = \Drupal::l(t('Login with GitHub'), $link);
+
 
     return array(
-      'add_this_page' => $form,
+      '#markup' => $output,
     );
   }
 

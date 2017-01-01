@@ -37,22 +37,26 @@ class GithubConnectForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
-    global $base_url;
-
-    if (!(\Drupal::currentUser()->isAnonymous())) {
-      return FALSE;
-    }
-
-    $client_id = \Drupal::state()->get('github_connect_client_id');
-
-    $current_request = \Drupal::service('request_stack')->getCurrentRequest();
-
-    $destination = $current_request->query->get('destination');
-
-    $link = Url::fromUri('https://github.com/login/oauth/authorize?client_id=' . $client_id . '&scope=user,public&redirect_uri=' . urlencode($base_url . '/github/register/create?destination=' . $destination['destination']));
-    $output = \Drupal::l(t('Login with GitHub'), $link);
-
-    return $output;
+//    global $base_url;
+//
+//    if (!(\Drupal::currentUser()->isAnonymous())) {
+//      return FALSE;
+//    }
+//
+//    $client_id = \Drupal::state()->get('github_connect_client_id');
+//
+//    $current_request = \Drupal::service('request_stack')->getCurrentRequest();
+//
+//    $destination = $current_request->query->get('destination');
+//
+//    $option = [
+//      'query' => ['client_id' => $client_id, 'scope' => 'user,public', 'uri' => urlencode($base_url . '/github/register/create?destination=' . $destination['destination'])
+//      ],
+//    ];
+//    $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
+////    $link = Url::fromUri('https://github.com/login/oauth/authorize?client_id=');
+//    $output = \Drupal::l(t('Login with GitHub'), $link);
+//    return $output;
   }
 
   /**
