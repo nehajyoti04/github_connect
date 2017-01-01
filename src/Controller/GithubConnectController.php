@@ -7,12 +7,11 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\user\Entity\User;
 use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-
-//use Drupal\user\UserInterface;
+use Drupal\user\UserInterface;
 
 class GithubConnectController extends ControllerBase {
 
-  public function github_connect_get_access_tokenAction() {
+  public function github_connect_get_access_token() {
     $user = \Drupal::currentUser();
 //
 //    module_load_include('inc', 'github_connect');
@@ -124,7 +123,7 @@ class GithubConnectController extends ControllerBase {
    */
   public function github_connect_get_token_user($token) {
     if ($token) {
-      $result = \Drupal::db_select('github_connect_users', 'g_u')
+      $result = db_select('github_connect_users', 'g_u')
         ->fields('g_u', array('uid', 'access_token'))
         ->condition('access_token', $token, '=')
         ->execute()
@@ -135,7 +134,7 @@ class GithubConnectController extends ControllerBase {
         return FALSE;
       }
 
-      return \Drupal::user_load($uid);
+      return user_load($uid);
     }
   }
 
@@ -241,7 +240,7 @@ class GithubConnectController extends ControllerBase {
 
     // Store GitHub user with token.
     if ($account) {
-      \Drupal::db_insert('github_connect_users')
+      db_insert('github_connect_users')
         ->fields(array(
           'uid' => $account->uid,
           'access_token' => $token,

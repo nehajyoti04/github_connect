@@ -1,4 +1,2 @@
-administer github connect settings:
-  title: 'Administer Github Connect settings'
-  description: 'Full administration access, only for admin.'
-  restrict access: TRUE
+permission_callbacks:
+  - Drupal\github_connect\GithubConnectPermissions::permissions
