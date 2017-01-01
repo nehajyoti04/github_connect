@@ -23,9 +23,10 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
 
     $form['github_connect_settings'] = array(
-      '#type' => 'fieldset',
+      '#type' => 'details',
       '#title' => t('Github settings'),
       '#description' => t('Fill in the form below. You will first have to create an application at https://github.com/account/applications/new. Main URL should be set to your domain name and Callback URL to your domain name /github/register/create (http://example.com/github/register/create). After saving the application you will be given the Client ID and Client secret.'),
+      '#open' => TRUE,
     );
 
     $form['github_connect_settings']['github_connect_client_id'] = array(
