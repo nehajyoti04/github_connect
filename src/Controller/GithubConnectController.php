@@ -75,9 +75,9 @@ class GithubConnectController extends ControllerBase {
 //          \Drupal::logger('github_user')->notice($github_user['email']);
 
           if ($existing_user_by_mail = user_load_by_mail($github_user['email'])) {
-            \Drupal::logger('existing_user_by_mail')->notice("user load by name".$existing_user_by_mail->uid);
+            \Drupal::logger('existing_user_by_mail')->notice("user load by name".$existing_user_by_mail->id());
             // If a user with this email address exists, let him connect the github account to his already created account.
-            $response = new RedirectResponse('github/verify/email/' . $existing_user_by_mail->uid . '/' . $token);
+            $response = new RedirectResponse('github/verify/email/' . $existing_user_by_mail->id() . '/' . $token);
             $response->send();
             return;
           }
@@ -200,8 +200,9 @@ class GithubConnectController extends ControllerBase {
 
 
       $github_user_emails = $this->_github_connect_get_github_user_emails($token);
-      $github_user['email'] = $github_user_emails[0];
-      \Drupal::logger('github_user_emails')->notice($github_user_emails[0]);
+      $github_user['email'] = $github_user_emails[0]['email'];
+//      print '<pre>'; print_r("github user emails"); print '</pre>';
+//      print '<pre>'; print_r($github_user_emails); print '</pre>';
     }
 
     return $github_user;
@@ -281,6 +282,7 @@ class GithubConnectController extends ControllerBase {
 
     // Store GitHub user with token.
     if ($account) {
+      \Drupal::logger('_github_connect account id')->notice($account->id());
       db_insert('github_connect_users')
         ->fields(array(
           'uid' => $account->id(),
