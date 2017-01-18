@@ -4,8 +4,10 @@ namespace Drupal\github_connect\Controller;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Url;
 use Drupal\user\Entity\User;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\user\UserInterface;
 
@@ -13,6 +15,7 @@ class GithubConnectController extends ControllerBase {
 
   public function github_connect_get_access_token() {
     $user = \Drupal::currentUser();
+
 //
 //    module_load_include('inc', 'github_connect');
 //
@@ -27,20 +30,35 @@ class GithubConnectController extends ControllerBase {
       'data' => 'client_id=' . $client_id . '&client_secret=' . $client_secret . '&code=' . $code,
       'method' => 'POST',
     );
+//    $url1= Url::fromUri($url, $options['data']);
+    $url1= $url.$options['data'];
+//    print '<pre>'; print_r("url1"); print '</pre>';
+//    print '<pre>'; print_r($url1); print '</pre>';exit;
+//    \Drupal::logger('url 1')->notice($url1);
+    print "hello";
 //    $response = drupal_http_request($url, $options);
 //    $token = $response->data;
-    try {
-      $response = \Drupal::httpClient()->get($url, $options);
-      $token = (string) $response->getBody();
-      if (empty($token)) {
-        return FALSE;
-      }
-    }
-    catch (RequestException $e) {
+    $client = \Drupal::httpClient();
+//    $response = $client->request('GET', $url, $options);
+    $response = $client->request('POST', $url1);
+
+//    \Drupal::logger('response')->notice($response);
+
+
+//    https://github.com/login/oauth/authorize?client_id=b2235973f6ec11c2e212&scope=user,public&
+    //redirect_uri=http%3A%2F%2Fdrupal7-2%2Fgithub%2Fregister%2Fcreate%3Fdestination%3Duser
+
+//    $response = \Drupal::httpClient()->get($url, $options);
+    print "after reponse";
+    $token = (string) $response->getBody();
+    print "before empty token";
+    if (empty($token)) {
+      print "empty token";
       return FALSE;
     }
 
     if ($token) {
+      print "inside if token";
       // Check if a user exists for the token.
       $account = $this->github_connect_get_token_user($token);
 
@@ -49,6 +67,7 @@ class GithubConnectController extends ControllerBase {
           $this->_github_connect_user_login($account);
           $response = new RedirectResponse('');
           $response->send();
+          print "response send";
           return;
         }
         else { // Otherwise register the user and log in
@@ -79,7 +98,7 @@ class GithubConnectController extends ControllerBase {
         if ($account) {
           // If there is a user with the token, throw an error.
           drupal_set_message(t('Your GitHub account could not be connected, it is already coupled with another user.'), 'error');
-          $response = new RedirectResponse('user/' . $user->uid . '/github');
+          $response = new RedirectResponse('user/' . $account->id() . '/github');
           $response->send();
           return;
         }
@@ -162,8 +181,19 @@ class GithubConnectController extends ControllerBase {
         'method' => 'GET',
         'timeout' => 7200,
       );
-      $ghuser = \Drupal::httpClient()->get('https://api.github.com/user?' . $token, $options);
+
+      \Drupal::logger('token')->notice($token);
+
+//      $client = \Drupal::client();
+//      $result = $client->get('https://www.drupal.org');
+
+      $client = \Drupal::httpClient();
+      $ghuser = $client->request('GET', 'https://api.github.com/user?' . $token);
+      // TODO pass timeout value.
+
+//      $ghuser = \Drupal::httpClient()->get('https://api.github.com/user?' . $token, $options);
       $github_user = Json::decode($ghuser->data);
+
 
       $github_user_emails = $this->_github_connect_get_github_user_emails($token);
       $github_user['email'] = $github_user_emails[0];

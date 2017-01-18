@@ -8,7 +8,7 @@ github_connect.admin_config:
     _permission: 'administer github connect settings'
 
 github_connect.register:
-  path: '/github/register'
+  path: '/github/register/create'
   defaults:
     _controller: '\Drupal\github_connect\Controller\GithubConnectController::github_connect_get_access_token'
     _title: 'Connected to Github'
