@@ -77,17 +77,22 @@ class GithubConnectController extends ControllerBase {
           if ($existing_user_by_mail = user_load_by_mail($github_user['email'])) {
             \Drupal::logger('existing_user_by_mail')->notice("user load by name".$existing_user_by_mail->id());
             // If a user with this email address exists, let him connect the github account to his already created account.
-            $response = new RedirectResponse('github/verify/email/' . $existing_user_by_mail->id() . '/' . $token);
-            $response->send();
-            return;
+
+            return $this->redirect('github_connect.verify', array('user' => $existing_user_by_mail->id(), 'token' => $token));
+//            $url = 'github/verify/email/' . $existing_user_by_mail->id() . '/' . $token;
+//            return new RedirectResponse($url);
+//            $response = new RedirectResponse();
+//            $response->send();
+//            return;
           }
           else {
             // Otherwise make sure there is no account with the same username
             if ($existing_user_by_name = user_load_by_name($github_user['login'])) {
               \Drupal::logger('existing_user_by_name')->notice("user load by name".$existing_user_by_name->id());
-              $response = new RedirectResponse('github/username/' . $existing_user_by_name->id() . '/' . $token);
-              $response->send();
-              return;
+              return $this->redirect('github.username', array('user' => $existing_user_by_name->id(), 'token' => $token));
+//              $response = new RedirectResponse('github/username/' . $existing_user_by_name->id() . '/' . $token);
+//              $response->send();
+//              return;
             } else {
               $this->_github_connect_register($github_user, $token);
               $response = new RedirectResponse('');
@@ -116,6 +121,7 @@ class GithubConnectController extends ControllerBase {
           }
 
           if ($github_user['html_url']) {
+            \Drupal::logger('before html_url')->notice('_github_connect_save_github_user');
             $this->_github_connect_save_github_user($user, $token);
 
             drupal_set_message(t('Your GitHub account is now connected.'));
@@ -163,7 +169,7 @@ class GithubConnectController extends ControllerBase {
   /**
    * Log the user with the given account in
    */
-  function _github_connect_user_login($account) {
+  public static function _github_connect_user_login($account) {
     $form_state['uid'] = $account->id();
 //    user_login_submit(array(), $form_state);
   }
@@ -213,7 +219,7 @@ class GithubConnectController extends ControllerBase {
    *
    * @param $token The token for the github user
    */
-  function _github_connect_get_github_user_emails($token) {
+  static function _github_connect_get_github_user_emails($token) {
     $cache = &drupal_static(__FUNCTION__);
 
     if (!is_null($cache)) {
@@ -240,7 +246,7 @@ class GithubConnectController extends ControllerBase {
    * Register new user.
    */
   public static function _github_connect_register($github_user, $token) {
-    module_load_include('inc', 'github_connect');
+//    module_load_include('inc', 'github_connect');
 
     $username = $github_user['login'];
 
@@ -257,6 +263,7 @@ class GithubConnectController extends ControllerBase {
     $account->save();
 
     if ($account) {
+      \Drupal::logger('before 1')->notice('_github_connect_save_github_user');
       self::_github_connect_save_github_user($account, $token);
 
       // Log in the stored user.
@@ -274,7 +281,7 @@ class GithubConnectController extends ControllerBase {
   /**
    * Save the new GitHub user in github_connect_users
    */
-  function _github_connect_save_github_user($account, $token) {
+  public static function _github_connect_save_github_user($account, $token) {
     $github_user = self::_github_connect_get_github_user_info($token);
 
     // Set the authmap

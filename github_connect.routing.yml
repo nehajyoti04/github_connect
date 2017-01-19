@@ -22,3 +22,11 @@ github.username:
     _title: 'Choose your username'
   requirements:
       _access: 'TRUE'
+
+github_connect.verify:
+  path: 'github/verify/email/{user}/{token}'
+  default:
+    _form: '\Drupal\github_connect\Form\VerifyEmailForm'
+    _title: 'Merge accounts'
+  requirements:
+      _access: 'TRUE'

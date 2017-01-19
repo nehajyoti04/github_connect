@@ -25,13 +25,13 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
  *
  * @package Drupal\github_connect\Form\GithubConnectForm
  */
-class UsernameChooseForm extends FormBase {
+class VerifyEmailForm extends FormBase {
 
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'github_connect_username_choose_form';
+    return 'github_connect_verify_email_form';
   }
 
   /**
@@ -46,27 +46,21 @@ class UsernameChooseForm extends FormBase {
     }
     $form['message'] = array(
       '#type' => 'item',
-      '#title' => t('Username in use'),
-      '#markup' => t('There is already an account associated with your GitHub account name !account_name. Please choose a
-        different username for use on !site. This will not change your github username and you will continue to be able
-        to log in with your github account.',
-        array(
-          '!site' => \Drupal::state()->get('site_name'),
-          '!account_name' => $account,
-        )),
+      '#title' => t('Email address in use'),
+      '#markup' => t('There is already an account associated with your GitHub email address. Type your !site account password to merge accounts.', array('!site' => variable_get('site_name'))),
     );
     $form['name'] = array('#type' => 'hidden', '#value' => $account->name);
-    $form['name_new'] = array('#type' => 'textfield',
-      '#title' => t('New username'),
-      '#description' => t('Enter another username.'),
+    $form['pass'] = array('#type' => 'password',
+      '#title' => t('Password'),
+      '#description' => t('Enter your password.'),
       '#required' => TRUE,
     );
     $form['token'] = array('#type' => 'hidden', '#value' => $token);
-
     $form['actions'] = array('#type' => 'actions');
-    $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Submit username'));
+    $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Merge accounts'));
 
     return $form;
+
   }
 
   /**
@@ -74,10 +68,11 @@ class UsernameChooseForm extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
 
-    $name_new = $form_state['values']['name_new'];
+    $name = $form_state->getValues()['name'];
+    $password = $form_state->getValues()['pass'];
 
-    if (user_load_by_name($name_new)) {
-      $form_state->setErrorByName('name_new', t('This username already exists, please choose another one.'));
+    if (\Drupal::service('user.auth')->authenticate($name, $password) == FALSE) {
+      $form_state->setErrorByName('pass', t('Incorrect password.'));
     }
 
   }
@@ -86,14 +81,19 @@ class UsernameChooseForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $token = $form_state->getValues()['token'];
-    $github_user = GithubConnectController::_github_connect_get_github_user_info($token);
-    // Change the login name to the newly selected name
-    $github_user['login'] = $form_state['values']['name_new'];
 
-    GithubConnectController::_github_connect_register($github_user, $token);
+    $account = user_load_by_name($form_state['values']['name']);
+    $token = $form_state->getValues()['token'];
+
+    GithubConnectController::_github_connect_save_github_user($account, $token);
+
+    // Log in the connected user.
+    GithubConnectController::_github_connect_user_login($account);
+    drupal_set_message(t('You are now connected with your GitHub account.'));
+
     $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
     return new RedirectResponse($url);
+
   }
 
 }
