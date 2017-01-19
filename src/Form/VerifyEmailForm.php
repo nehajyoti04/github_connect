@@ -85,14 +85,19 @@ class VerifyEmailForm extends FormBase {
     $account = user_load_by_name($form_state['values']['name']);
     $token = $form_state->getValues()['token'];
 
+    \Drupal::logger('verify form')->notice('_github_connect_save_github_user');
     GithubConnectController::_github_connect_save_github_user($account, $token);
+    \Drupal::logger('after verify form')->notice('_github_connect_save_github_user');
 
     // Log in the connected user.
     GithubConnectController::_github_connect_user_login($account);
     drupal_set_message(t('You are now connected with your GitHub account.'));
 
-    $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
-    return new RedirectResponse($url);
+//    $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
+//    return new RedirectResponse($url);
+    $response = new RedirectResponse('');
+    $response->send();
+    return;
 
   }
 

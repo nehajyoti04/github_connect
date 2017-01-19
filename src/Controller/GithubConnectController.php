@@ -8,6 +8,7 @@ use Drupal\Core\Url;
 use Drupal\user\Entity\User;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp;
+use GuzzleHttp\Psr7\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\user\UserInterface;
 
@@ -124,6 +125,7 @@ class GithubConnectController extends ControllerBase {
             \Drupal::logger('before html_url')->notice('_github_connect_save_github_user');
             $this->_github_connect_save_github_user($user, $token);
 
+            \Drupal::logger('after html_url')->notice('_github_connect_save_github_user');
             drupal_set_message(t('Your GitHub account is now connected.'));
             $response = new RedirectResponse('user/' . $user->id() . '/github');
             $response->send();
@@ -266,12 +268,20 @@ class GithubConnectController extends ControllerBase {
       \Drupal::logger('before 1')->notice('_github_connect_save_github_user');
       self::_github_connect_save_github_user($account, $token);
 
+      \Drupal::logger('after 1')->notice('_github_connect_save_github_user');
       // Log in the stored user.
       self::_github_connect_user_login($account);
 
-      $response = new RedirectResponse('');
-      $response->send();
-      return;
+      \Drupal::logger('_github_connect_register - redirect')->notice('..');
+
+      return self::redirect('');
+//      $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
+//      return new RedirectResponse($url);
+
+
+//      $response = new RedirectResponse('');
+//      $response->send();
+//      return;
     }
     else {
       drupal_set_message(t('Error saving new user.'), 'error');
@@ -290,6 +300,7 @@ class GithubConnectController extends ControllerBase {
     // Store GitHub user with token.
     if ($account) {
       \Drupal::logger('_github_connect account id')->notice($account->id());
+      \Drupal::logger('_github_connect token')->notice($token);
       db_insert('github_connect_users')
         ->fields(array(
           'uid' => $account->id(),
@@ -297,6 +308,7 @@ class GithubConnectController extends ControllerBase {
           'timestamp' => REQUEST_TIME,
         ))
         ->execute();
+      \Drupal::logger('after insert')->notice($token);
     }
   }
 }
