@@ -14,3 +14,11 @@ github_connect.register:
     _title: 'Connected to Github'
   requirements:
     _access: 'TRUE'
+
+github.username:
+  path: 'github/username/{user}/{token}'
+  default:
+    _form: '\Drupal\github_connect\Form\UsernameChooseForm'
+    _title: 'Choose your username'
+  requirements:
+      _access: 'TRUE'

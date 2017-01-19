@@ -173,7 +173,7 @@ class GithubConnectController extends ControllerBase {
    *
    * @param $token The token for the github user
    */
-  function _github_connect_get_github_user_info($token) {
+  public static function _github_connect_get_github_user_info($token) {
     $cache = &drupal_static(__FUNCTION__);
 
     if (!is_null($cache)) {
@@ -199,7 +199,7 @@ class GithubConnectController extends ControllerBase {
       $github_user = Json::decode($data);
 
 
-      $github_user_emails = $this->_github_connect_get_github_user_emails($token);
+      $github_user_emails = self::_github_connect_get_github_user_emails($token);
       $github_user['email'] = $github_user_emails[0]['email'];
 //      print '<pre>'; print_r("github user emails"); print '</pre>';
 //      print '<pre>'; print_r($github_user_emails); print '</pre>';
@@ -239,7 +239,7 @@ class GithubConnectController extends ControllerBase {
   /**
    * Register new user.
    */
-  function _github_connect_register($github_user, $token) {
+  public static function _github_connect_register($github_user, $token) {
     module_load_include('inc', 'github_connect');
 
     $username = $github_user['login'];
@@ -257,10 +257,10 @@ class GithubConnectController extends ControllerBase {
     $account->save();
 
     if ($account) {
-      $this->_github_connect_save_github_user($account, $token);
+      self::_github_connect_save_github_user($account, $token);
 
       // Log in the stored user.
-      $this->_github_connect_user_login($account);
+      self::_github_connect_user_login($account);
 
       $response = new RedirectResponse('');
       $response->send();
@@ -275,7 +275,7 @@ class GithubConnectController extends ControllerBase {
    * Save the new GitHub user in github_connect_users
    */
   function _github_connect_save_github_user($account, $token) {
-    $github_user = $this->_github_connect_get_github_user_info($token);
+    $github_user = self::_github_connect_get_github_user_info($token);
 
     // Set the authmap
 //    user_set_authmaps($account, array('authname_github_connect' => $github_user['html_url']));
