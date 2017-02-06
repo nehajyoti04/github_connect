@@ -37,20 +37,25 @@ class VerifyEmailForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, $user='', $token = '') {
+  public function buildForm(array $form, FormStateInterface $form_state, $uid = '', $token = '') {
 
-    \Drupal::logger('inside build form - user')->notice($user);
-    if (!$user) {
-      $account = \Drupal::currentUser()->name;
+    \Drupal::logger('inside build form - user')->notice($uid);
+    if (!$uid) {
+      $account = \Drupal::currentUser();
     } else {
-      $account = $user;
+      $account = \Drupal\user\Entity\User::load($uid);// pass your uid
+
+
+//      $account = $uid;
     }
+    $name = $account->get('name')->value;
+    \Drupal::logger('inside build form - name')->notice($name);
     $form['message'] = array(
       '#type' => 'item',
       '#title' => t('Email address in use'),
-      '#markup' => t('There is already an account associated with your GitHub email address. Type your !site account password to merge accounts.', array('!site' => variable_get('site_name'))),
+      '#markup' => t('There is already an account associated with your GitHub email address. Type your !site account password to merge accounts.', array('!site' => \Drupal::state()->get('site_name'))),
     );
-    $form['name'] = array('#type' => 'hidden', '#value' => $account->name);
+    $form['name'] = array('#type' => 'hidden', '#value' => $name);
     $form['pass'] = array('#type' => 'password',
       '#title' => t('Password'),
       '#description' => t('Enter your password.'),

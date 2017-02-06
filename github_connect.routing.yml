@@ -17,16 +17,16 @@ github_connect.register:
 
 github.username:
   path: 'github/username/{user}/{token}'
-  default:
+  defaults:
     _form: '\Drupal\github_connect\Form\UsernameChooseForm'
     _title: 'Choose your username'
   requirements:
       _access: 'TRUE'
 
 github_connect.verify:
-  path: 'github/verify/email/{user}/{token}'
-  default:
+  path: 'github/verify/email/{uid}/{token}'
+  defaults:
     _form: '\Drupal\github_connect\Form\VerifyEmailForm'
     _title: 'Merge accounts'
   requirements:
-      _access: 'TRUE'
+    _access: 'TRUE'

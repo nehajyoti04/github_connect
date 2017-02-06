@@ -258,7 +258,7 @@ class GithubConnectController extends ControllerBase {
   /**
    * Register new user.
    */
-  public static function _github_connect_register($github_user, $token) {
+  public function _github_connect_register($github_user, $token) {
 //    module_load_include('inc', 'github_connect');
 
     $username = $github_user['login'];
@@ -285,7 +285,8 @@ class GithubConnectController extends ControllerBase {
 
       \Drupal::logger('_github_connect_register - redirect')->notice('..');
 
-      return self::redirect('');
+//      return self::redirect('');
+      return $this->redirect('');
 //      $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
 //      return new RedirectResponse($url);
 
