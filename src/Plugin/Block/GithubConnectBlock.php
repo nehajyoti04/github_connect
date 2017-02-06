@@ -8,6 +8,8 @@
 namespace Drupal\github_connect\Plugin\Block;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Annotation\Translation;
+use Drupal\Core\Block\Annotation\Block;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Block\BlockBase;
 
@@ -30,7 +32,19 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface{
    * {@inheritdoc}
    */
   protected function blockAccess(AccountInterface $account) {
-    return AccessResult::allowedIfHasPermission($account, 'access content');
+
+    if ($account->isAnonymous() ) {
+      return AccessResult::allowed();
+//      return AccessResult::allowed()->addCacheContexts(['route.name']);
+    }
+    return AccessResult::forbidden();
+
+//    return AccessResult::allowedIfHasPermission($account, 'access content');
+//    if (!$account->isAnonymous() ) {
+//      return AccessResult::allowed()->addCacheContexts(['route.name']);
+//    }
+//    return AccessResult::forbidden();
+
   }
 
   /**
@@ -38,9 +52,13 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface{
    */
   public function build() {
     global $base_url;
-
+    \Drupal::logger('anonymous user')->notice(\Drupal::currentUser()->isAnonymous());
     if (!(\Drupal::currentUser()->isAnonymous())) {
-      return FALSE;
+      \Drupal::logger('anonymous user')->notice(\Drupal::currentUser()->isAnonymous());
+      $items = array('content' => '');
+      return array(
+        '#items' => $items);
+//      return FALSE;
     }
 
     $client_id = \Drupal::state()->get('github_connect_client_id');
@@ -56,11 +74,16 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface{
     $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
 //    $link = Url::fromUri('https://github.com/login/oauth/authorize?client_id=');
     $output = \Drupal::l(t('Login with GitHub'), $link);
+    \Drupal::logger('login link')->notice($output);
 
-
+//    $items = array('content' => $output);
     return array(
+      '#type' => 'markup',
       '#markup' => $output,
     );
+
   }
+
+
 
 }

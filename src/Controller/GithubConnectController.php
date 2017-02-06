@@ -42,6 +42,11 @@ class GithubConnectController extends ControllerBase {
     $client = \Drupal::httpClient();
 //    $response = $client->request('GET', $url, $options);
     $response = $client->request('POST', $url1);
+    $body = (string) $response->getBody();
+    list($access_token) = explode('&', $body);
+
+
+    $token = explode('=', $access_token)[1];
 
 //    \Drupal::logger('response')->notice($response);
 
@@ -50,9 +55,9 @@ class GithubConnectController extends ControllerBase {
     //redirect_uri=http%3A%2F%2Fdrupal7-2%2Fgithub%2Fregister%2Fcreate%3Fdestination%3Duser
 
 //    $response = \Drupal::httpClient()->get($url, $options);
-    print "after reponse";
-    $token = (string) $response->getBody();
-    print "before empty token";
+//    print "after reponse";
+//    $token = (string) $response->getBody();
+//    print "before empty token";
     if (empty($token)) {
       print "empty token";
       return FALSE;
@@ -65,6 +70,7 @@ class GithubConnectController extends ControllerBase {
 
       if ($user->id() == 0) { // First the case where an anonymous user attempts a login
         if ($account) { // If there is a user with the token log that user in.
+          \Drupal::logger('account')->notice("user exists");
           $this->_github_connect_user_login($account);
           $response = new RedirectResponse('');
           $response->send();
@@ -72,11 +78,13 @@ class GithubConnectController extends ControllerBase {
           return;
         }
         else { // Otherwise register the user and log in
+          \Drupal::logger('inside else')->notice("user does not exist");
           $github_user = $this->_github_connect_get_github_user_info($token);
-//          \Drupal::logger('github_user')->notice($github_user['email']);
+          \Drupal::logger('github_user')->notice($github_user['email']);
 
           if ($existing_user_by_mail = user_load_by_mail($github_user['email'])) {
             \Drupal::logger('existing_user_by_mail')->notice("user load by name".$existing_user_by_mail->id());
+            \Drupal::logger('token')->notice($token);
             // If a user with this email address exists, let him connect the github account to his already created account.
 
             return $this->redirect('github_connect.verify', array('user' => $existing_user_by_mail->id(), 'token' => $token));
@@ -181,7 +189,7 @@ class GithubConnectController extends ControllerBase {
    *
    * @param $token The token for the github user
    */
-  public static function _github_connect_get_github_user_info($token) {
+  public static function _github_connect_get_github_user_info($token, $request_token = '') {
     $cache = &drupal_static(__FUNCTION__);
 
     if (!is_null($cache)) {
@@ -193,13 +201,14 @@ class GithubConnectController extends ControllerBase {
         'timeout' => 7200,
       );
 
-      \Drupal::logger('token')->notice($token);
+      \Drupal::logger('token-- request token')->notice($token);
 
 //      $client = \Drupal::client();
 //      $result = $client->get('https://www.drupal.org');
 
       $client = \Drupal::httpClient();
-      $ghuser = $client->request('GET', 'https://api.github.com/user?' . $token);
+//      $ghuser = $client->request('GET', 'https://api.github.com/user?' . $token);
+      $ghuser = $client->request('GET', 'https://api.github.com/user?access_token='.$token.'&scope=user&token_type=bearer');
       // TODO pass timeout value.
       $data = (string) $ghuser->getBody();
       \Drupal::logger('data')->notice($data);
@@ -234,7 +243,9 @@ class GithubConnectController extends ControllerBase {
       );
 
       $client = \Drupal::httpClient();
-      $ghuser = $client->request('GET', 'https://api.github.com/user/emails?' . $token);
+      \Drupal::logger('emails - token')->notice($token);
+//      $ghuser = $client->request('GET', 'https://api.github.com/user/emails?' . $token);
+      $ghuser = $client->request('GET', 'https://api.github.com/user/emails?access_token='. $token . '&scope=user&token_type=bearer');
 
 //      $ghuser = \Drupal::httpClient()->get('https://api.github.com/user/emails?' . $token, $options);
       $data = (string) $ghuser->getBody();
@@ -292,6 +303,7 @@ class GithubConnectController extends ControllerBase {
    * Save the new GitHub user in github_connect_users
    */
   public static function _github_connect_save_github_user($account, $token) {
+    \Drupal::logger('inside _github_connect_save_github_user')->notice($account->id());
     $github_user = self::_github_connect_get_github_user_info($token);
 
     // Set the authmap

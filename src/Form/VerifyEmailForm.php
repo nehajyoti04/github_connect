@@ -39,6 +39,7 @@ class VerifyEmailForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, $user='', $token = '') {
 
+    \Drupal::logger('inside build form - user')->notice($user);
     if (!$user) {
       $account = \Drupal::currentUser()->name;
     } else {
