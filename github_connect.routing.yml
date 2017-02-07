@@ -21,7 +21,7 @@ github.username:
     _form: '\Drupal\github_connect\Form\UsernameChooseForm'
     _title: 'Choose your username'
   requirements:
-      _access: 'TRUE'
+    _access: 'TRUE'
 
 github_connect.verify:
   path: 'github/verify/email/{uid}/{token}'

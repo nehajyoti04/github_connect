@@ -87,7 +87,7 @@ class GithubConnectController extends ControllerBase {
             \Drupal::logger('token')->notice($token);
             // If a user with this email address exists, let him connect the github account to his already created account.
 
-            return $this->redirect('github_connect.verify', array('user' => $existing_user_by_mail->id(), 'token' => $token));
+            return $this->redirect('github_connect.verify', array('uid' => $existing_user_by_mail->id(), 'token' => $token));
 //            $url = 'github/verify/email/' . $existing_user_by_mail->id() . '/' . $token;
 //            return new RedirectResponse($url);
 //            $response = new RedirectResponse();
@@ -285,8 +285,16 @@ class GithubConnectController extends ControllerBase {
 
       \Drupal::logger('_github_connect_register - redirect')->notice('..');
 
+
 //      return self::redirect('');
-      return $this->redirect('');
+      global $base_url;
+      $redirect_url = \Drupal::url('<front>');
+      \Drupal::logger('_github_connect_register - redirect url')->notice($redirect_url);
+      \Drupal::logger('_github_connect_register - base url')->notice($base_url);
+      $response = new RedirectResponse($base_url);
+      $response->send();
+      return;
+//      return $this->redirect('');
 //      $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
 //      return new RedirectResponse($url);
 
