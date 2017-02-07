@@ -36,7 +36,7 @@ class GithubConnectController extends ControllerBase {
 //    print '<pre>'; print_r("url1"); print '</pre>';
 //    print '<pre>'; print_r($url1); print '</pre>';exit;
 //    \Drupal::logger('url 1')->notice($url1);
-    print "hello";
+//    print "hello";
 //    $response = drupal_http_request($url, $options);
 //    $token = $response->data;
     $client = \Drupal::httpClient();
@@ -59,7 +59,7 @@ class GithubConnectController extends ControllerBase {
 //    $token = (string) $response->getBody();
 //    print "before empty token";
     if (empty($token)) {
-      print "empty token";
+//      print "empty token";
       return FALSE;
     }
 

@@ -53,7 +53,7 @@ class VerifyEmailForm extends FormBase {
     $form['message'] = array(
       '#type' => 'item',
       '#title' => t('Email address in use'),
-      '#markup' => t('There is already an account associated with your GitHub email address. Type your !site account password to merge accounts.', array('!site' => \Drupal::state()->get('site_name'))),
+      '#markup' => t('There is already an account associated with your GitHub email address. Type your %site account password to merge accounts.', array('%site' => \Drupal::state()->get('site_name'))),
     );
     $form['name'] = array('#type' => 'hidden', '#value' => $name);
     $form['pass'] = array('#type' => 'password',

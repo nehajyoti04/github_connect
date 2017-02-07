@@ -47,12 +47,12 @@ class UsernameChooseForm extends FormBase {
     $form['message'] = array(
       '#type' => 'item',
       '#title' => t('Username in use'),
-      '#markup' => t('There is already an account associated with your GitHub account name !account_name. Please choose a
-        different username for use on !site. This will not change your github username and you will continue to be able
+      '#markup' => t('There is already an account associated with your GitHub account name %account_name. Please choose a
+        different username for use on %site. This will not change your github username and you will continue to be able
         to log in with your github account.',
         array(
-          '!site' => \Drupal::state()->get('site_name'),
-          '!account_name' => $account,
+          '%site' => \Drupal::state()->get('site_name'),
+          '%account_name' => $account,
         )),
     );
     $form['name'] = array('#type' => 'hidden', '#value' => $account->name);
