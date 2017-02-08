@@ -104,9 +104,15 @@ class GithubConnectController extends ControllerBase {
 //              return;
             } else {
               $this->_github_connect_register($github_user, $token);
-              $response = new RedirectResponse('');
+//              global $base_url;
+              $redirect_url = \Drupal::url('<front>');
+              $response = new RedirectResponse($redirect_url);
               $response->send();
-              return;
+//              return;
+              \Drupal::logger('this place')->notice("git hub connect register completed.");
+//              $response = new RedirectResponse('');
+//              $response->send();
+              return TRUE;
             }
           }
         }
@@ -287,6 +293,9 @@ class GithubConnectController extends ControllerBase {
 
 
 //      return self::redirect('');
+//      if (!$this->isRedirect()) {
+//        throw new \InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $status));
+//      }
       global $base_url;
       $redirect_url = \Drupal::url('<front>');
       \Drupal::logger('_github_connect_register - redirect url')->notice($redirect_url);
