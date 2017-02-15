@@ -39,7 +39,7 @@ class VerifyEmailForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, $uid = '', $token = '') {
 
-    \Drupal::logger('inside build form - user')->notice($uid);
+    \Drupal::logger('inside verify email build form - user')->notice($uid);
     if (!$uid) {
       $account = \Drupal::currentUser();
     } else {
@@ -73,7 +73,7 @@ class VerifyEmailForm extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-
+    \Drupal::logger('inside verify email form ')->notice("validate");
     $name = $form_state->getValues()['name'];
     $password = $form_state->getValues()['pass'];
 
@@ -87,7 +87,7 @@ class VerifyEmailForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-
+    \Drupal::logger('inside verify email form ')->notice("submit");
     $account = user_load_by_name($form_state['values']['name']);
     $token = $form_state->getValues()['token'];
 
@@ -103,7 +103,7 @@ class VerifyEmailForm extends FormBase {
 //    return new RedirectResponse($url);
     $response = new RedirectResponse('');
     $response->send();
-    return;
+    return $response;
 
   }
 
