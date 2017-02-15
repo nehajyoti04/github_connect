@@ -112,23 +112,23 @@ function github_connect_block_view($delta = '') {
 function github_connect_connect_block() {
   global $base_url;
 
-  if (user_is_logged_in()) {
-    return FALSE;
-  }
-
-  // @FIXME
-// Could not extract the default value because it is either indeterminate, or
-// not scalar. You'll need to provide a default value in
-// config/install/github_connect.settings.yml and config/schema/github_connect.schema.yml.
-$client_id = \Drupal::config('github_connect.settings')->get('github_connect_client_id');
-  $destination = user_login_destination();
-  $link = 'https://github.com/login/oauth/authorize?client_id=' . $client_id . '&scope=user,public&redirect_uri=' . urlencode($base_url . '/github/register/create?destination=' . $destination['destination']);
-  // @FIXME
-// l() expects a Url object, created from a route name or external URI.
-// $output = l(t('Login with GitHub'), $link);
-
-
-  return $output;
+//  if (user_is_logged_in()) {
+//    return FALSE;
+//  }
+//
+//  // @FIXME
+//// Could not extract the default value because it is either indeterminate, or
+//// not scalar. You'll need to provide a default value in
+//// config/install/github_connect.settings.yml and config/schema/github_connect.schema.yml.
+//$client_id = \Drupal::config('github_connect.settings')->get('github_connect_client_id');
+//  $destination = user_login_destination();
+//  $link = 'https://github.com/login/oauth/authorize?client_id=' . $client_id . '&scope=user,public&redirect_uri=' . urlencode($base_url . '/github/register/create?destination=' . $destination['destination']);
+//  // @FIXME
+//// l() expects a Url object, created from a route name or external URI.
+//// $output = l(t('Login with GitHub'), $link);
+//
+//
+//  return $output;
 }
 
 /**

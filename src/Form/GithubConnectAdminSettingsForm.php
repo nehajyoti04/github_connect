@@ -45,7 +45,7 @@ class GithubConnectAdminSettingsForm extends ConfigFormBase {
     return ['github_connect.settings'];
   }
 
-  public function buildForm(array $form_state, \Drupal\Core\Form\FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state) {
 
     $form['github_connect_settings'] = [
       '#type' => 'fieldset',

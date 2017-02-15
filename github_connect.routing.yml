@@ -1,0 +1,32 @@
+github_connect.admin_config:
+  path: '/admin/config/people/github'
+  defaults:
+    _form: '\Drupal\github_connect\Form\GithubConnectAdminSettingForm'
+    _title: 'Github settings'
+    _description: 'Settings for connecting with Github.'
+  requirements:
+    _permission: 'administer github connect settings'
+
+github_connect.register:
+  path: '/github/register/create'
+  defaults:
+    _controller: '\Drupal\github_connect\Controller\GithubConnectController::github_connect_get_access_token'
+    _title: 'Connected to Github'
+  requirements:
+    _access: 'TRUE'
+
+github.username:
+  path: 'github/username/{user}/{token}'
+  defaults:
+    _form: '\Drupal\github_connect\Form\UsernameChooseForm'
+    _title: 'Choose your username'
+  requirements:
+    _access: 'TRUE'
+
+github_connect.verify:
+  path: 'github/verify/email/{uid}/{token}'
+  defaults:
+    _form: '\Drupal\github_connect\Form\VerifyEmailForm'
+    _title: 'Merge accounts'
+  requirements:
+    _access: 'TRUE'
