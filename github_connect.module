@@ -4,28 +4,143 @@
  * @file
  * Gives site visitors the ability to log in with GitHub (http://github.com).
  */
-use Drupal\Core\Url;
 
 /**
  * Implements hook_help().
- * @param $route_name
- * @return \Drupal\Core\StringTranslation\TranslatableMarkup
  */
-function github_connect_help($route_name) {
-  switch ($route_name) {
-    case 'help.page.github':
+function github_connect_help($path, $arg) {
+  switch ($path) {
+    case 'admin/config/people/github':
       return t('Gives site visitors the ability to login to Drupal with their GitHub account.');
   }
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function github_connect_menu() {
+  // Admin settings page.
+  $items['admin/config/people/github'] = array(
+    'title' => 'Github settings',
+    'description' => 'Settings for connecting with Github.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('github_connect_admin_settings_form'),
+    'access arguments' => array('administer github_connect'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'github_connect.admin.inc',
+  );
+  // Callback for oauth token request from Github API.
+  $items['github/register/create'] = array(
+    'type' => MENU_CALLBACK,
+    'title' => 'Connected to Github',
+    'page callback' => 'github_connect_get_access_token',
+    'access callback' => TRUE,
+    'file' => 'github_connect.pages.inc',
+  );
+  $items['user/%user/github'] = array(
+    'title' => 'Github account',
+    'page callback' => 'github_user_account',
+    'page arguments' => array(1),
+    'access callback' => 'user_edit_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'github_connect.pages.inc',
+  );
+  $items['user/%user/github/delete'] = array(
+    'title' => 'Disconnect Github account',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('github_connect_user_delete_form', 1),
+    'access callback' => 'user_edit_access',
+    'access arguments' => array(1),
+    'file' => 'github_connect.pages.inc',
+  );
+  $items['github/verify/email/%user/%'] = array(
+    'type' => MENU_CALLBACK,
+    'title' => 'Merge accounts',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('github_connect_verify_email_form', 3, 4),
+    'access callback' => TRUE,
+    'file' => 'github_connect.pages.inc',
+  );
+  $items['github/username/%user/%'] = array(
+    'type' => MENU_CALLBACK,
+    'title' => 'Choose your username',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('github_connect_username_choose_form', 2, 3),
+    'access callback' => TRUE,
+    'file' => 'github_connect.pages.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implements hook_block_info().
+ */
+function github_connect_block_info() {
+  $blocks['github_connect-login'] = array(
+    'info' => t('Github connect'),
+  );
+
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function github_connect_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'github_connect-login':
+      return array(
+        'subject' => '',
+        'content' => github_connect_connect_block(),
+      );
+      break;
+
+  }
+  return $block;
+}
+
+/**
+ * GitHub connect block.
+ */
+function github_connect_connect_block() {
+  global $base_url;
+
+  if (user_is_logged_in()) {
+    return FALSE;
+  }
+
+  // @FIXME
+// Could not extract the default value because it is either indeterminate, or
+// not scalar. You'll need to provide a default value in
+// config/install/github_connect.settings.yml and config/schema/github_connect.schema.yml.
+$client_id = \Drupal::config('github_connect.settings')->get('github_connect_client_id');
+  $destination = user_login_destination();
+  $link = 'https://github.com/login/oauth/authorize?client_id=' . $client_id . '&scope=user,public&redirect_uri=' . urlencode($base_url . '/github/register/create?destination=' . $destination['destination']);
+  // @FIXME
+// l() expects a Url object, created from a route name or external URI.
+// $output = l(t('Login with GitHub'), $link);
+
+
+  return $output;
 }
 
 /**
  * Implements hook_user_delete().
  */
-function github_connect_user_delete(\Drupal\user\UserInterface $account) {
+function github_connect_user_delete($account) {
+  module_load_include('inc', 'github_connect');
+
   // Delete the user from github_connect_users table.
-  if (github_connect_get_user_token($account->id())) {
+  if (github_connect_get_user_token($account->uid)) {
     db_delete('github_connect_users')
-      ->condition('uid', $account->id())
+      ->condition('uid', $account->uid)
       ->execute();
   }
 }
@@ -49,7 +164,7 @@ function _github_connect_user_login_form_alter(&$form, &$form_state) {
 
   $items = array();
   $items[] = array(
-    'data' => $this->github_connect_connect_block(),
+    'data' => github_connect_connect_block(),
     'class' => array('github-link'),
   );
 
@@ -59,51 +174,8 @@ function _github_connect_user_login_form_alter(&$form, &$form_state) {
     '#attributes' => array('class' => array('github-links')),
     '#weight' => 1,
   );
-  $form['github_connect.return_to'] = array('#type' => 'hidden', '#value' => \Drupal::url('openid/authenticate', array('absolute' => TRUE, 'query' => user_login_destination())));
-}
+  // @FIXME
+// url() expects a route name or an external URI.
+// $form['github_connect.return_to'] = array('#type' => 'hidden', '#value' => url('openid/authenticate', array('absolute' => TRUE, 'query' => user_login_destination())));
 
-/**
- * Get GitHub access token for User
- *
- * @param $uid User user id
- * @return $token Access token from GitHub
- */
-function github_connect_get_user_token($uid) {
-  if ($uid) {
-    $result = db_select('github_connect_users', 'g_u')
-      ->fields('g_u', array('uid', 'access_token'))
-      ->condition('uid', $uid, '=')
-      ->execute()
-      ->fetchAssoc();
-
-    $token = $result['access_token'];
-    return $token;
-  }
-}
-
-/**
- * GitHub connect block.
- */
-function github_connect_connect_block() {
-  global $base_url;
-
-//  if (!(\Drupal::currentUser()->isAnonymous())) {
-//    return FALSE;
-//  }
-//
-//  $client_id = \Drupal::state()->get('github_connect_client_id');
-//
-//  $current_request = \Drupal::service('request_stack')->getCurrentRequest();
-//
-//  $destination = $current_request->query->get('destination');
-//
-//  $option = [
-//    'query' => ['client_id' => $client_id, 'scope' => 'user,public', 'uri' => urlencode($base_url . '/github/register/create?destination=' . $destination['destination'])
-//    ],
-//  ];
-//  $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
-////    $link = Url::fromUri('https://github.com/login/oauth/authorize?client_id=');
-//  $output = \Drupal::l(t('Login with GitHub'), $link);
-//
-//  return $output;
 }

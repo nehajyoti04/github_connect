@@ -1,0 +1,3 @@
+github_connect.github_user_account:
+  route_name: github_connect.github_user_account
+  title: 'Github account'

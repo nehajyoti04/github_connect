@@ -1,0 +1,9 @@
+github_connect.admin_settings_form:
+  route_name: github_connect.admin_settings_form
+  title: 'Github settings'
+  description: 'Settings for connecting with Github.'
+  parent: user.admin_index
+github_connect.user_delete_form:
+  route_name: github_connect.user_delete_form
+  title: 'Disconnect Github account'
+  parent: github_connect.github_user_account

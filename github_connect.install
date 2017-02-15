@@ -16,7 +16,8 @@ function github_connect_install() {
  */
 function github_connect_uninstall() {
   // Delete our module's variable from the variables table.
-  \Drupal::state()->delete('github_connect.admin_config');
+  \Drupal::config('github_connect.settings')->clear('github_connect_client_id')->save();
+  \Drupal::config('github_connect.settings')->clear('github_connect_client_secret')->save();
 }
 
 /**
@@ -44,48 +45,6 @@ function github_connect_schema() {
       ),
     ),
     'primary key' => array('uid'),
-  );
-
-  // Setting our own external authentication functionality.
-  $schema['authmap'] = array(
-    'description' => 'Stores distributed authentication mapping.',
-    'fields' => array(
-      'uid' => array(
-        'description' => 'Primary key: {users}.uid for user.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'provider' => array(
-        'description' => 'The name of the authentication provider providing the authname',
-        'type' => 'varchar_ascii',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'authname' => array(
-        'description' => 'Unique authentication name provided by authentication provider',
-        'type' => 'varchar_ascii',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'data' => array(
-        'description' => 'Extra (serialized) data to store with the authname.',
-        'type' => 'blob',
-        'not null' => FALSE,
-        'size' => 'big',
-      ),
-    ),
-    'primary key' => array('uid', 'provider'),
-    'indexes' => array(
-      'uid' => array('uid'),
-      'auth_provider' => array('authname', 'provider'),
-    ),
-    'foreign keys' => array(
-      'uid' => array('users' => 'uid'),
-    ),
   );
 
   return $schema;

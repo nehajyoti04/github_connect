@@ -31,4 +31,3 @@ AUTHOR
 ---------------------
 
 vikom (Viktor Miranda)
-nehajyoti (Jyoti Bohra)
