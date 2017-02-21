@@ -5,22 +5,54 @@ namespace Drupal\github_connect\Controller;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
+use Drupal\externalauth\AuthmapInterface;
 use Drupal\externalauth\ExternalAuth;
 use Drupal\user\Entity\User;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp;
 use GuzzleHttp\Psr7\Request;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\user\UserInterface;
+use Drupal\externalauth\ExternalAuthInterface;
 
 class GithubConnectController extends ControllerBase {
-
+  public static $modules = array('system', 'user', 'field', 'externalauth');
   /**
    * The entity manager.
    *
    * @var \Drupal\Core\Entity\EntityManagerInterface
    */
   protected $entityManager;
+
+  /**
+   * The Authmap service.
+   *
+   * @var \Drupal\externalauth\AuthmapInterface
+   */
+  protected $authmap;
+
+  /**
+   * The ExternalAuth service.
+   *
+   * @var \Drupal\externalauth\ExternalAuth
+   */
+  protected $externalauth;
+
+
+//  public function __construct(AuthmapInterface $authmap){
+//    $this->authmap = $authmap;
+////    $this->externalauth = $externalauth;
+//  }
+//
+//  /**
+//   * {@inheritdoc}
+//   */
+//  public static function create(ContainerInterface $container) {
+//    return new static(
+//      $container->get('externalauth.authmap')
+//    );
+//  }
 
   public function github_connect_get_access_token() {
     $user = \Drupal::currentUser();
@@ -336,15 +368,18 @@ class GithubConnectController extends ControllerBase {
 
     // Set the authmap.
     \Drupal::logger('authname')->notice($github_user['html_url']);
-    $s = new ExternalAuth;
-    $s->register($account, 'github_connect', $github_user['html_url']);
-    db_insert('authmap')
-      ->fields(array(
-        'uid' => $account->id(),
-        'provider' => 'github_connect',
-        'authname' => $github_user['html_url'],
-      ))
-      ->execute();
+//    $s = new ExternalAuth;
+//    $s->register($account, 'github_connect', $github_user['html_url']);
+//    db_insert('authmap')
+//      ->fields(array(
+//        'uid' => $account->id(),
+//        'provider' => 'github_connect',
+//        'authname' => $github_user['html_url'],
+//      ))
+//      ->execute();
+//    $this->authmap = \Drupal::service('externalauth.authmap');
+    $x = \Drupal::service('externalauth.authmap');
+    $x->save($account, 'github_connect',$github_user['html_url']);
 //    user_set_authmaps($account, array('authname_github_connect' => $github_user['html_url']));
 
     // Store GitHub user with token.
