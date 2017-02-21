@@ -22,6 +22,8 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
   }
   public function buildForm(array $form, FormStateInterface $form_state) {
 
+    $config = $this->config('github_connect.settings');
+
     $form['github_connect_settings'] = array(
       '#type' => 'details',
       '#title' => t('Github settings'),
@@ -32,7 +34,7 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
     $form['github_connect_settings']['github_connect_client_id'] = array(
       '#title' => t('Client ID'),
       '#type' => 'textfield',
-      '#default_value' => \Drupal::state()->get('github_connect_client_id'),
+      '#default_value' => $config->get('github_connect_client_id'),
       '#size' => 50,
       '#maxlength' => 50,
       '#required' => TRUE,
@@ -41,7 +43,7 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
     $form['github_connect_settings']['github_connect_client_secret'] = array(
       '#title' => t('Client secret'),
       '#type' => 'textfield',
-      '#default_value' => \Drupal::state()->get('github_connect_client_secret'),
+      '#default_value' => $config->get('github_connect_client_secret'),
       '#size' => 50,
       '#maxlength' => 50,
       '#required' => TRUE,
@@ -51,9 +53,6 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state) {
-
-    \Drupal::state()->set('github_connect_client_id', $form_state->getValues()['github_connect_client_id']);
-    \Drupal::state()->set('github_connect_client_secret', $form_state->getValues()['github_connect_client_secret']);
 
     $this->config('github_connect.settings')
       ->set('github_connect_client_id', $form_state->getValues()['github_connect_client_id'])

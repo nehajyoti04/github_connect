@@ -42,15 +42,8 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface{
    */
   public function build() {
     global $base_url;
-    \Drupal::logger('anonymous user')->notice(\Drupal::currentUser()->isAnonymous());
-//    if (!(\Drupal::currentUser()->isAnonymous())) {
-//      \Drupal::logger('anonymous user')->notice(\Drupal::currentUser()->isAnonymous());
-//      $items = array('content' => '');
-//      return array(
-//        '#items' => $items);
-//    }
-
-    $client_id = \Drupal::state()->get('github_connect_client_id');
+    $config = \Drupal::config('github_connect.settings');
+    $client_id = $config->get('github_connect_client_id');
 
     $current_request = \Drupal::service('request_stack')->getCurrentRequest();
 

@@ -51,25 +51,10 @@ function github_connect_form_user_login_form_alter(&$form, FormStateInterface $f
 }
 
 function _github_connect_user_login_form_alter(&$form, FormStateInterface $form_state) {
-//  $form['#attached']['css'][] = drupal_get_path('module', 'github_connect') . '/github_connect.css';
-
-//  $items = array();
-//  $items[] = array(
-//    'data' => github_connect_connect_block(),
-//    'class' => array('github-link'),
-//  );
   $form['github_links'] = array(
       '#type' => 'markup',
     '#markup' => github_connect_connect_block(),
   );
-
-//  $form['github_links'] = array(
-//    '#theme' => 'item_list',
-//    '#items' => $items,
-//    '#attributes' => array('class' => array('github-links')),
-//    '#weight' => 1,
-//  );
-//  $form['github_connect.return_to'] = array('#type' => 'hidden', '#value' => \Drupal::url('openid/authenticate', array('absolute' => TRUE, 'query' => user_login_destination())));
 }
 
 /**
@@ -114,13 +99,7 @@ function github_connect_connect_block() {
     ],
   ];
   $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
-//    $link = Url::fromUri('https://github.com/login/oauth/authorize?client_id=');
   $output = \Drupal::l(t('Login with GitHub'), $link);
   \Drupal::logger('login link')->notice($output);
   return $output;
-//  return array(
-//    '#type' => 'markup',
-//    '#markup' => $output,
-//  );
-
 }
