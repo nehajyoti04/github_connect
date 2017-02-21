@@ -306,7 +306,7 @@ class GithubConnectController extends ControllerBase {
   /**
    * Register new user.
    */
-  public static function _github_connect_register($github_user, $token) {
+  public function _github_connect_register($github_user, $token) {
 //    module_load_include('inc', 'github_connect');
 
     $username = $github_user['login'];
@@ -325,7 +325,7 @@ class GithubConnectController extends ControllerBase {
 
     if ($account) {
 //      \Drupal::logger('before 1')->notice('_github_connect_save_github_user');
-      self::_github_connect_save_github_user($account, $token);
+      $this->_github_connect_save_github_user($account, $token);
 
 //      \Drupal::logger('after 1')->notice('_github_connect_save_github_user');
       // Log in the stored user.
@@ -380,6 +380,8 @@ class GithubConnectController extends ControllerBase {
 //    $this->authmap = \Drupal::service('externalauth.authmap');
     $x = \Drupal::service('externalauth.authmap');
     $x->save($account, 'github_connect',$github_user['html_url']);
+    // Login.
+    \Drupal::service('externalauth.externalauth')->login($github_user['html_url'], 'github_connect');
 //    user_set_authmaps($account, array('authname_github_connect' => $github_user['html_url']));
 
     // Store GitHub user with token.
