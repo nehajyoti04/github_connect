@@ -4,6 +4,7 @@ namespace Drupal\github_connect\Controller;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\externalauth\AuthmapInterface;
 use Drupal\externalauth\ExternalAuth;
@@ -39,7 +40,28 @@ class GithubConnectController extends ControllerBase {
    */
   protected $externalauth;
 
+  /**
+   * @var AccountInterface $account
+   */
+  protected $account;
 
+  /**
+   * Class constructor.
+   */
+  public function __construct(AccountInterface $account) {
+    $this->account = $account;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    // Instantiates this form class.
+    return new static(
+    // Load the service required to construct this class.
+      $container->get('current_user')
+    );
+  }
 //  public function __construct(AuthmapInterface $authmap){
 //    $this->authmap = $authmap;
 ////    $this->externalauth = $externalauth;
@@ -55,7 +77,8 @@ class GithubConnectController extends ControllerBase {
 //  }
 
   public function github_connect_get_access_token() {
-    $user = \Drupal::currentUser();
+    // Get current user data.
+    $uid = $this->account->id();
 
 //
 //    module_load_include('inc', 'github_connect');
@@ -106,8 +129,8 @@ class GithubConnectController extends ControllerBase {
     if ($token) {
       // Check if a user exists for the token.
       $account = $this->github_connect_get_token_user($token);
-      \Drupal::logger('user_id')->notice($user->id());
-      if ($user->id() == 0) { // First the case where an anonymous user attempts a login
+      \Drupal::logger('user_id')->notice($uid);
+      if ($uid == 0) { // First the case where an anonymous user attempts a login
         if ($account) { // If there is a user with the token log that user in.
           \Drupal::logger('account')->notice("user exists");
           $this->_github_connect_user_login($account);
@@ -116,13 +139,13 @@ class GithubConnectController extends ControllerBase {
           return $response;
         }
         else { // Otherwise register the user and log in
-//          \Drupal::logger('inside else')->notice("user does not exist");
+          \Drupal::logger('inside else')->notice("user does not exist");
           $github_user = $this->_github_connect_get_github_user_info($token);
-//          \Drupal::logger('github_user')->notice($github_user['email']);
+          \Drupal::logger('github_user')->notice($github_user['email']);
 
           if ($existing_user_by_mail = user_load_by_mail($github_user['email'])) {
-//            \Drupal::logger('existing_user_by_mail')->notice("user load by name".$existing_user_by_mail->id());
-//            \Drupal::logger('token')->notice($token);
+            \Drupal::logger('existing_user_by_mail')->notice("user load by name".$existing_user_by_mail->id());
+            \Drupal::logger('token')->notice($token);
             // If a user with this email address exists, let him connect the github account to his already created account.
 
             return $this->redirect('github_connect.verify', array('uid' => $existing_user_by_mail->id(), 'token' => $token));
@@ -170,18 +193,19 @@ class GithubConnectController extends ControllerBase {
 
           if (!$github_user['email']) {
             drupal_set_message(t('We could not connect your GitHub account. You need to have a public email address registered with your GitHub account.'), 'error');
-            $response = new RedirectResponse('user/' . $user->id() . '/github');
+            $response = new RedirectResponse('user/' . $uid . '/github');
             $response->send();
             return $response;
           }
 
           if ($github_user['html_url']) {
 //            \Drupal::logger('before html_url')->notice('_github_connect_save_github_user');
-            $this->_github_connect_save_github_user($user, $token);
+//            $this->_github_connect_save_github_user($user, $token);
+            $this->_github_connect_save_github_user($account, $token);
 
 //            \Drupal::logger('after html_url')->notice('_github_connect_save_github_user');
             drupal_set_message(t('Your GitHub account is now connected.'));
-            $response = new RedirectResponse('user/' . $user->id() . '/github');
+            $response = new RedirectResponse('user/' . $uid . '/github');
             $response->send();
             return $response;
           }

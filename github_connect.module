@@ -4,6 +4,7 @@
  * @file
  * Gives site visitors the ability to log in with GitHub (http://github.com).
  */
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 
 /**
@@ -37,29 +38,38 @@ function github_connect_form_user_login_block_alter(&$form, &$form_state) {
   _github_connect_user_login_form_alter($form, $form_state);
 }
 
+//function github_connect_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+//  print "hello";
+//  print $form_id; exit;
+//}
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function github_connect_form_user_login_alter(&$form, &$form_state) {
+function github_connect_form_user_login_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+//  print "hello";
   _github_connect_user_login_form_alter($form, $form_state);
 }
 
-function _github_connect_user_login_form_alter(&$form, &$form_state) {
-  $form['#attached']['css'][] = drupal_get_path('module', 'github_connect') . '/github_connect.css';
+function _github_connect_user_login_form_alter(&$form, FormStateInterface $form_state) {
+//  $form['#attached']['css'][] = drupal_get_path('module', 'github_connect') . '/github_connect.css';
 
-  $items = array();
-  $items[] = array(
-    'data' => $this->github_connect_connect_block(),
-    'class' => array('github-link'),
-  );
-
+//  $items = array();
+//  $items[] = array(
+//    'data' => github_connect_connect_block(),
+//    'class' => array('github-link'),
+//  );
   $form['github_links'] = array(
-    '#theme' => 'item_list',
-    '#items' => $items,
-    '#attributes' => array('class' => array('github-links')),
-    '#weight' => 1,
+      '#type' => 'markup',
+    '#markup' => github_connect_connect_block(),
   );
-  $form['github_connect.return_to'] = array('#type' => 'hidden', '#value' => \Drupal::url('openid/authenticate', array('absolute' => TRUE, 'query' => user_login_destination())));
+
+//  $form['github_links'] = array(
+//    '#theme' => 'item_list',
+//    '#items' => $items,
+//    '#attributes' => array('class' => array('github-links')),
+//    '#weight' => 1,
+//  );
+//  $form['github_connect.return_to'] = array('#type' => 'hidden', '#value' => \Drupal::url('openid/authenticate', array('absolute' => TRUE, 'query' => user_login_destination())));
 }
 
 /**
@@ -85,25 +95,32 @@ function github_connect_get_user_token($uid) {
  * GitHub connect block.
  */
 function github_connect_connect_block() {
+//  return "hello";
   global $base_url;
 
-//  if (!(\Drupal::currentUser()->isAnonymous())) {
-//    return FALSE;
-//  }
-//
-//  $client_id = \Drupal::state()->get('github_connect_client_id');
-//
-//  $current_request = \Drupal::service('request_stack')->getCurrentRequest();
-//
-//  $destination = $current_request->query->get('destination');
-//
-//  $option = [
-//    'query' => ['client_id' => $client_id, 'scope' => 'user,public', 'uri' => urlencode($base_url . '/github/register/create?destination=' . $destination['destination'])
-//    ],
-//  ];
-//  $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
-////    $link = Url::fromUri('https://github.com/login/oauth/authorize?client_id=');
-//  $output = \Drupal::l(t('Login with GitHub'), $link);
-//
-//  return $output;
+
+
+  if (!(\Drupal::currentUser()->isAnonymous())) {
+    return FALSE;
+  }
+  $client_id = \Drupal::state()->get('github_connect_client_id');
+
+  $current_request = \Drupal::service('request_stack')->getCurrentRequest();
+
+  $destination = $current_request->query->get('destination');
+
+  $option = [
+    'query' => ['client_id' => $client_id, 'scope' => 'user,public', 'uri' => urlencode($base_url . '/github/register/create?destination=' . $destination['destination'])
+    ],
+  ];
+  $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
+//    $link = Url::fromUri('https://github.com/login/oauth/authorize?client_id=');
+  $output = \Drupal::l(t('Login with GitHub'), $link);
+  \Drupal::logger('login link')->notice($output);
+  return $output;
+//  return array(
+//    '#type' => 'markup',
+//    '#markup' => $output,
+//  );
+
 }
