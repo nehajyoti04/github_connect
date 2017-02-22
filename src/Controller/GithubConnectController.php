@@ -3,7 +3,9 @@
 namespace Drupal\github_connect\Controller;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
@@ -18,7 +20,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\user\UserInterface;
 use Drupal\externalauth\ExternalAuthInterface;
 
-class GithubConnectController extends ControllerBase {
+class GithubConnectController extends ControllerBase implements ContainerInjectionInterface {
   public static $modules = array('system', 'user', 'field', 'externalauth');
   /**
    * The entity manager.
@@ -53,13 +55,17 @@ class GithubConnectController extends ControllerBase {
    */
   protected $url;
 
+  protected $config;
+
   /**
    * Class constructor.
    */
-  public function __construct(AccountInterface $account, $url, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(AccountInterface $account, $url, ConfigFactoryInterface $config_factory) {
     $this->account = $account;
     $this->url = $url;
-    $this->userStorage = $entity_type_manager->getStorage('user');
+    $this->config = $config_factory->getEditable('github_connect.settings');
+//    $this->configFactory = $config_factory;
+//    $this->userStorage = $entity_type_manager->getStorage('user');
   }
 
   /**
@@ -71,18 +77,29 @@ class GithubConnectController extends ControllerBase {
     // Load the service required to construct this class.
       $container->get('current_user'),
       $container->get('url_generator'),
-      $container->get('entity.manager')->getStorage('user')
+      $container->get('config.factory')
+//      $container->get('entity.manager')->getStorage('user')
     );
   }
+
+
 
 
   public function github_connect_get_access_token() {
     // Get current user data.
     $uid = $this->account->id();
 
-    $config = $this->configFactory->get('github_connect.settings');
-    $client_id = $config->get('github_connect_client_id');
-    $client_secret = $config->get('github_connect_client_secret');
+//    $config = $this->configFactory->get('github_connect.settings');
+//    $client_id = $this->config->get('github_connect_client_id');
+//    $client_secret = $this->config->get('github_connect_client_secret');
+
+    $client_id = \Drupal::state()->get('github_connect_client_id');
+    $client_secret = \Drupal::state()->get('github_connect_client_secret');
+//    print '<pre>'; print_r("client id"); print '</pre>';
+//    print '<pre>'; print_r($client_id); print '</pre>';
+//    print '<pre>'; print_r("client secret"); print '</pre>';
+//    print '<pre>'; print_r($client_secret); print '</pre>';
+
 
     // The response code after first call to GitHub.
     $code = $_GET['code'];
@@ -222,9 +239,9 @@ class GithubConnectController extends ControllerBase {
       if (empty($uid)) {
         return FALSE;
       }
-      return $this->userStorage->load($uid);
+//      return $this->userStorage->load($uid);
 
-//      return user_load($uid);
+      return user_load($uid);
     }
   }
 
