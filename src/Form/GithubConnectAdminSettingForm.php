@@ -26,13 +26,13 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
 
     $form['github_connect_settings'] = array(
       '#type' => 'details',
-      '#title' => t('Github settings'),
-      '#description' => t('Fill in the form below. You will first have to create an application at https://github.com/account/applications/new. Main URL should be set to your domain name and Callback URL to your domain name /github/register/create (http://example.com/github/register/create). After saving the application you will be given the Client ID and Client secret.'),
+      '#title' => $this->t('Github settings'),
+      '#description' => $this->t('Fill in the form below. You will first have to create an application at https://github.com/account/applications/new. Main URL should be set to your domain name and Callback URL to your domain name /github/register/create (http://example.com/github/register/create). After saving the application you will be given the Client ID and Client secret.'),
       '#open' => TRUE,
     );
 
     $form['github_connect_settings']['github_connect_client_id'] = array(
-      '#title' => t('Client ID'),
+      '#title' => $this->t('Client ID'),
       '#type' => 'textfield',
       '#default_value' => $config->get('github_connect_client_id'),
       '#size' => 50,
@@ -41,7 +41,7 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
     );
 
     $form['github_connect_settings']['github_connect_client_secret'] = array(
-      '#title' => t('Client secret'),
+      '#title' => $this->t('Client secret'),
       '#type' => 'textfield',
       '#default_value' => $config->get('github_connect_client_secret'),
       '#size' => 50,

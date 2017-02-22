@@ -9,6 +9,7 @@ namespace Drupal\github_connect\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RedirectDestinationInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\Component\Utility\UrlHelper;
@@ -36,10 +37,18 @@ class UsernameChooseForm extends FormBase {
   protected $account;
 
   /**
+   * The redirect destination service.
+   *
+   * @var \Drupal\Core\Routing\RedirectDestinationInterface
+   */
+  protected $redirectDestination;
+
+  /**
    * Class constructor.
    */
-  public function __construct(AccountInterface $account) {
+  public function __construct(AccountInterface $account, RedirectDestinationInterface $redirect_destination) {
     $this->account = $account;
+    $this->redirectDestination = $redirect_destination;
   }
 
   /**

@@ -9,8 +9,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class GithubConnectPermissions implements ContainerInjectionInterface {
 
-//  use StringTranslationTrait;
-
   /**
    * The entity manager.
    *
