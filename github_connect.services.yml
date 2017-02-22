@@ -1,0 +1,4 @@
+services:
+  github_connect.config:
+    class: Drupal\github_connect\GithubConnectConfig
+    arguments: ['@config.factory']

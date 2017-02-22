@@ -9,6 +9,7 @@ namespace Drupal\github_connect\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Ajax\AjaxResponse;
@@ -18,6 +19,7 @@ use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Form;
 use Drupal\github_connect\Controller\GithubConnectController;
+use Drupal\user\UserAuth;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -26,7 +28,22 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
  * @package Drupal\github_connect\Form\GithubConnectForm
  */
 class VerifyEmailForm extends FormBase {
+  /**
+   * The current account.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $account;
 
+  protected $userAuth;
+
+  /**
+   * Class constructor.
+   */
+  public function __construct(AccountInterface $account, UserAuth $user_auth) {
+    $this->account = $account;
+    $this->userAuth = $user_auth;
+  }
   /**
    * {@inheritdoc}
    */
@@ -38,32 +55,28 @@ class VerifyEmailForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, $uid = '', $token = '') {
-
-    \Drupal::logger('inside verify email build form - user')->notice($uid);
+    $site_name =  $this->configFactory->get('system.site')->get('name');
     if (!$uid) {
-      $account = \Drupal::currentUser();
+      $account = $this->account;
+//      $account = \Drupal::currentUser();
     } else {
       $account = \Drupal\user\Entity\User::load($uid);// pass your uid
-
-
-//      $account = $uid;
     }
     $name = $account->get('name')->value;
-    \Drupal::logger('inside build form - name')->notice($name);
     $form['message'] = array(
       '#type' => 'item',
-      '#title' => t('Email address in use'),
-      '#markup' => t('There is already an account associated with your GitHub email address. Type your %site account password to merge accounts.', array('%site' => \Drupal::state()->get('site_name'))),
+      '#title' => $this->t('Email address in use'),
+      '#markup' => $this->t('There is already an account associated with your GitHub email address. Type your %site account password to merge accounts.', array('%site' => $site_name)),
     );
     $form['name'] = array('#type' => 'hidden', '#value' => $name);
     $form['pass'] = array('#type' => 'password',
-      '#title' => t('Password'),
-      '#description' => t('Enter your password.'),
+      '#title' => $this->t('Password'),
+      '#description' => $this->t('Enter your password.'),
       '#required' => TRUE,
     );
     $form['token'] = array('#type' => 'hidden', '#value' => $token);
     $form['actions'] = array('#type' => 'actions');
-    $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Merge accounts'));
+    $form['actions']['submit'] = array('#type' => 'submit', '#value' => $this->t('Merge accounts'));
 
     return $form;
 
@@ -73,12 +86,11 @@ class VerifyEmailForm extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    \Drupal::logger('inside verify email form ')->notice("validate");
     $name = $form_state->getValues()['name'];
     $password = $form_state->getValues()['pass'];
 
-    if (\Drupal::service('user.auth')->authenticate($name, $password) == FALSE) {
-      $form_state->setErrorByName('pass', t('Incorrect password.'));
+    if ($this->userAuth->authenticate($name, $password) == FALSE) {
+      $form_state->setErrorByName('pass', $this->t('Incorrect password.'));
     }
 
   }
@@ -87,17 +99,14 @@ class VerifyEmailForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    \Drupal::logger('inside verify email form ')->notice("submit");
     $account = user_load_by_name($form_state['values']['name']);
     $token = $form_state->getValues()['token'];
 
-    \Drupal::logger('verify form')->notice('_github_connect_save_github_user');
     GithubConnectController::_github_connect_save_github_user($account, $token);
-    \Drupal::logger('after verify form')->notice('_github_connect_save_github_user');
 
     // Log in the connected user.
     GithubConnectController::_github_connect_user_login($account);
-    drupal_set_message(t('You are now connected with your GitHub account.'));
+    drupal_set_message($this->t('You are now connected with your GitHub account.'));
 
 //    $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
 //    return new RedirectResponse($url);

@@ -10,10 +10,16 @@ namespace Drupal\github_connect\Plugin\Block;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Annotation\Translation;
 use Drupal\Core\Block\Annotation\Block;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Routing\LinkGeneratorTrait;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Url;
+use Drupal\github_connect\GithubConnectConfig;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Provides a 'github_connect' block.
@@ -23,8 +29,50 @@ use Drupal\Core\Url;
  *   admin_label = @Translation("Github Connect"),
  * )
  */
-class GithubConnectBlock extends BlockBase implements BlockPluginInterface{
+class GithubConnectBlock extends BlockBase implements BlockPluginInterface, ContainerFactoryPluginInterface{
+  use LinkGeneratorTrait;
+  /**
+   * Stores the configuration factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
 
+  /**
+   * The request stack.
+   *
+   * @var \Symfony\Component\HttpFoundation\RequestStack
+   */
+  protected $request;
+
+  /**
+   * GithubConnectBlock constructor.
+   * @param array $configuration
+   * @param string $plugin_id
+   * @param mixed $plugin_definition
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, RequestStack $request) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+
+    $this->configFactory = $config_factory;
+    $this->request = $request->getCurrentRequest();
+//    $this->setConfiguration($configuration);
+//    $this->settings = $config->settings;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('config.factory'),
+      $container->get('request_stack')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -42,10 +90,11 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface{
    */
   public function build() {
     global $base_url;
-    $config = \Drupal::config('github_connect.settings');
+
+    $config = $this->configFactory->get('github_connect.settings');
     $client_id = $config->get('github_connect_client_id');
 
-    $current_request = \Drupal::service('request_stack')->getCurrentRequest();
+    $current_request = $this->request->getCurrentRequest();
 
     $destination = $current_request->query->get('destination');
 
@@ -54,9 +103,7 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface{
       ],
     ];
     $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
-//    $link = Url::fromUri('https://github.com/login/oauth/authorize?client_id=');
-    $output = \Drupal::l(t('Login with GitHub'), $link);
-    \Drupal::logger('login link')->notice($output);
+    $output = $this->l($this->t('Login with GitHub'), $link);
     return array(
       '#type' => 'markup',
       '#markup' => $output,
