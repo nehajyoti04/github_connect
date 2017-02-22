@@ -4,6 +4,7 @@ namespace Drupal\github_connect\Controller;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\externalauth\AuthmapInterface;
@@ -55,9 +56,10 @@ class GithubConnectController extends ControllerBase {
   /**
    * Class constructor.
    */
-  public function __construct(AccountInterface $account, $url) {
+  public function __construct(AccountInterface $account, $url, EntityTypeManagerInterface $entity_type_manager) {
     $this->account = $account;
     $this->url = $url;
+    $this->userStorage = $entity_type_manager->getStorage('user');
   }
 
   /**
@@ -68,7 +70,8 @@ class GithubConnectController extends ControllerBase {
     return new static(
     // Load the service required to construct this class.
       $container->get('current_user'),
-      $container->get('url_generator')
+      $container->get('url_generator'),
+      $container->get('entity.manager')->getStorage('user')
     );
   }
 
@@ -219,8 +222,9 @@ class GithubConnectController extends ControllerBase {
       if (empty($uid)) {
         return FALSE;
       }
+      return $this->userStorage->load($uid);
 
-      return user_load($uid);
+//      return user_load($uid);
     }
   }
 

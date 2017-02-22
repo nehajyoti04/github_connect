@@ -39,11 +39,11 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface, Cont
   protected $configFactory;
 
   /**
-   * The request stack.
+   * RequestStack object for getting requests.
    *
    * @var \Symfony\Component\HttpFoundation\RequestStack
    */
-  protected $request;
+  private $requestStack;
 
   /**
    * GithubConnectBlock constructor.
@@ -52,11 +52,12 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface, Cont
    * @param mixed $plugin_definition
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, RequestStack $request) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, RequestStack $requestStack) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->configFactory = $config_factory;
-    $this->request = $request->getCurrentRequest();
+    $this->requestStack = $requestStack;
+
 //    $this->setConfiguration($configuration);
 //    $this->settings = $config->settings;
   }
@@ -94,7 +95,7 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface, Cont
     $config = $this->configFactory->get('github_connect.settings');
     $client_id = $config->get('github_connect_client_id');
 
-    $current_request = $this->request->getCurrentRequest();
+    $current_request = $this->requestStack->getCurrentRequest();
 
     $destination = $current_request->query->get('destination');
 
