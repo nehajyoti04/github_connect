@@ -23,9 +23,9 @@ use Drupal\user\UserAuth;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
- * Class AddForm.
+ * Class VerifyEmailForm
  *
- * @package Drupal\github_connect\Form\GithubConnectForm
+ * @package Drupal\github_connect\Form
  */
 class VerifyEmailForm extends FormBase {
   /**
@@ -63,17 +63,7 @@ class VerifyEmailForm extends FormBase {
       $account = \Drupal\user\Entity\User::load($uid);// pass your uid
     }
     $name = $account->get('name')->value;
-    // $form['message'] = array(
-    //   '#type' => 'item',
-    //   '#title' => $this->t('Email address in use'),
-    //   '#markup' => $this->t('There is already an account associated with your GitHub email address. Type your %site account password to merge accounts.', array('%site' => $site_name)),
-    // );
     $form['name'] = array('#type' => 'hidden', '#value' => $name);
-    // $form['pass'] = array('#type' => 'password',
-    //   '#title' => $this->t('Password'),
-    //   '#description' => $this->t('Enter your password.'),
-    //   '#required' => TRUE,
-    // );
     $form['token'] = array('#type' => 'hidden', '#value' => $token);
     $form['actions'] = array('#type' => 'actions');
     $form['actions']['submit'] = array('#type' => 'submit', '#value' => $this->t('Merge accounts'));
@@ -81,19 +71,6 @@ class VerifyEmailForm extends FormBase {
     return $form;
 
   }
-
-  /**
-   * {@inheritdoc}
-   */
-  // public function validateForm(array &$form, FormStateInterface $form_state) {
-  //   $name = $form_state->getValues()['name'];
-  //   $password = $form_state->getValues()['pass'];
-
-  //   // if ($this->userAuth->authenticate($name, $password) == FALSE) {
-  //   //   $form_state->setErrorByName('pass', $this->t('Incorrect password.'));
-  //   // }
-
-  // }
 
   /**
    * {@inheritdoc}
@@ -108,12 +85,10 @@ class VerifyEmailForm extends FormBase {
     GithubConnectController::_github_connect_user_login($account);
     drupal_set_message($this->t('You are now connected with your GitHub account.'));
 
-//    $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
-//    return new RedirectResponse($url);
-    $response = new RedirectResponse('');
+    $redirect_url = $this->url('<front>');
+    $response = new RedirectResponse($redirect_url);
     $response->send();
     return $response;
-
   }
 
 }

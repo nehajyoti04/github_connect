@@ -6,19 +6,11 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Url;
-use Drupal\externalauth\AuthmapInterface;
-use Drupal\externalauth\ExternalAuth;
 use Drupal\user\Entity\User;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp;
-use GuzzleHttp\Psr7\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Drupal\user\UserInterface;
-use Drupal\externalauth\ExternalAuthInterface;
 
 class GithubConnectController extends ControllerBase implements ContainerInjectionInterface {
   public static $modules = array('system', 'user', 'field', 'externalauth');
@@ -28,20 +20,6 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
    * @var \Drupal\Core\Entity\EntityManagerInterface
    */
   protected $entityManager;
-
-  /**
-   * The Authmap service.
-   *
-   * @var \Drupal\externalauth\AuthmapInterface
-   */
-  protected $authmap;
-
-  /**
-   * The ExternalAuth service.
-   *
-   * @var \Drupal\externalauth\ExternalAuth
-   */
-  protected $externalauth;
 
   /**
    * @var AccountInterface $account
@@ -64,13 +42,11 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
     $this->account = $account;
     $this->url = $url;
     $this->config = $config_factory->getEditable('github_connect.settings');
-//    $this->configFactory = $config_factory;
-//    $this->userStorage = $entity_type_manager->getStorage('user');
   }
 
   /**
-   * {@inheritdoc}
-   */
+    * {@inheritdoc}
+     */
   public static function create(ContainerInterface $container) {
     // Instantiates this form class.
     return new static(
@@ -78,7 +54,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       $container->get('current_user'),
       $container->get('url_generator'),
       $container->get('config.factory')
-//      $container->get('entity.manager')->getStorage('user')
+    //      $container->get('entity.manager')->getStorage('user')
     );
   }
 
@@ -86,51 +62,30 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
     // Get current user data.
     $uid = $this->account->id();
     $account = $this->account;
-
-
-
-//    $config = $this->configFactory->get('github_connect.settings');
-   $client_id = $this->config->get('github_connect_client_id');
-   $client_secret = $this->config->get('github_connect_client_secret');
+    $client_id = $this->config->get('github_connect_client_id');
+    $client_secret = $this->config->get('github_connect_client_secret');
     // The response code after first call to GitHub.
     $code = $_GET['code'];
-
     $url = 'https://github.com/login/oauth/access_token?';
     $options = array(
       'data' => 'client_id=' . $client_id . '&client_secret=' . $client_secret . '&code=' . $code,
       'method' => 'POST',
     );
-//    $url1= Url::fromUri($url, $options['data']);
-    $url1= $url.$options['data'];
-
-//    $response = drupal_http_request($url, $options);
-//    $token = $response->data;
+    $url1 = $url . $options['data'];
     $client = \Drupal::httpClient();
-//    $response = $client->request('GET', $url, $options);
     $response = $client->request('POST', $url1);
     $body = (string) $response->getBody();
     list($access_token) = explode('&', $body);
 
-
     $token = explode('=', $access_token)[1];
 
-
-
-//    https://github.com/login/oauth/authorize?client_id=b2235973f6ec11c2e212&scope=user,public&
-    //redirect_uri=http%3A%2F%2Fdrupal7-2%2Fgithub%2Fregister%2Fcreate%3Fdestination%3Duser
-//    $response = \Drupal::httpClient()->get($url, $options);
-//    print "after reponse";
-//    $token = (string) $response->getBody();
-//    print "before empty token";
     if (empty($token)) {
-//      print "empty token";
       return FALSE;
     }
 
     if ($token) {
       // Check if a user exists for the token.
-      // $account = $this->github_connect_get_token_user($token);
-      
+
       // Get user details from GitHub to handle user association.
       $github_user = $this->_github_connect_get_github_user_info($token);
       if ($github_user && !empty($github_user['html_url'])) {
@@ -168,13 +123,9 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
 //              return;
             } else {
               $this->_github_connect_register($github_user, $token);
-//              global $base_url;
               $redirect_url = $this->url('<front>');
               $response = new RedirectResponse($redirect_url);
               $response->send();
-//              return;
-//              $response = new RedirectResponse('');
-//              $response->send();
               return $response;
             }
           }
@@ -199,9 +150,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
           }
 
           if ($github_user['html_url']) {
-//            $this->_github_connect_save_github_user($user, $token);
             $this->_github_connect_save_github_user($account, $token);
-
             drupal_set_message($this->t('Your GitHub account is now connected.'));
             $response = new RedirectResponse('user/' . $uid . '/github');
             $response->send();
@@ -217,8 +166,6 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       $response->send();
       return $response;
     }
-
-
   }
 
   /**
@@ -249,11 +196,9 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
    * Log the user with the given account in
    */
   public static function _github_connect_user_login($account) {
-    // $form_state['uid'] = $account->id();
     $uid = $account->id();
-//    user_login_submit(array(), $form_state);
     $user = User::load($uid);
-user_login_finalize($user);
+    user_login_finalize($user);
   }
 
   /**
@@ -276,18 +221,12 @@ user_login_finalize($user);
 //      $result = $client->get('https://www.drupal.org');
 
       $client = \Drupal::httpClient();
-//      $ghuser = $client->request('GET', 'https://api.github.com/user?' . $token);
-      $ghuser = $client->request('GET', 'https://api.github.com/user?access_token='.$token.'&scope=user&token_type=bearer');
+      $ghuser = $client->request('GET', 'https://api.github.com/user?access_token=' . $token .'&scope=user&token_type=bearer');
       // TODO pass timeout value.
       $data = (string) $ghuser->getBody();
-//      $ghuser = \Drupal::httpClient()->get('https://api.github.com/user?' . $token, $options);
       $github_user = Json::decode($data);
-
-
       $github_user_emails = self::_github_connect_get_github_user_emails($token);
       $github_user['email'] = $github_user_emails[0]['email'];
-//      print '<pre>'; print_r("github user emails"); print '</pre>';
-//      print '<pre>'; print_r($github_user_emails); print '</pre>';
     }
 
     return $github_user;
@@ -309,12 +248,9 @@ user_login_finalize($user);
         'method' => 'GET',
         'timeout' => 7200,
       );
-
+      
       $client = \Drupal::httpClient();
-//      $ghuser = $client->request('GET', 'https://api.github.com/user/emails?' . $token);
       $ghuser = $client->request('GET', 'https://api.github.com/user/emails?access_token='. $token . '&scope=user&token_type=bearer');
-
-//      $ghuser = \Drupal::httpClient()->get('https://api.github.com/user/emails?' . $token, $options);
       $data = (string) $ghuser->getBody();
       $github_user_emails = Json::decode($data);
     }
@@ -325,8 +261,6 @@ user_login_finalize($user);
    * Register new user.
    */
   public function _github_connect_register($github_user, $token) {
-//    module_load_include('inc', 'github_connect');
-
     $username = $github_user['login'];
 
     $userinfo = array(
@@ -347,8 +281,6 @@ user_login_finalize($user);
       // Log in the stored user.
       self::_github_connect_user_login($account);
 
-
-
 //      return self::redirect('');
 //      if (!$this->isRedirect()) {
 //        throw new \InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $status));
@@ -358,12 +290,6 @@ user_login_finalize($user);
       $response = new RedirectResponse($base_url);
       $response->send();
       return;
-//      return $this->redirect('');
-//      $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
-//      return new RedirectResponse($url);
-//      $response = new RedirectResponse('');
-//      $response->send();
-//      return;
     }
     else {
       drupal_set_message($this->t('Error saving new user.'), 'error');
@@ -388,24 +314,14 @@ user_login_finalize($user);
   public function _github_connect_save_github_user($account, $token) {
     $github_user = self::_github_connect_get_github_user_info($token);
 
-    // Set the authmap.
-//    $s = new ExternalAuth;
-//    $s->register($account, 'github_connect', $github_user['html_url']);
-   db_insert('github_connect_authmap')
-     ->fields(array(
+    db_insert('github_connect_authmap')
+      ->fields(array(
        'uid' => $account->id(),
        'provider' => 'github_connect',
        'authname' => $github_user['html_url'],
      ))
      ->execute();
-//    $this->authmap = \Drupal::service('externalauth.authmap');
 
-    // $x = \Drupal::service('externalauth.authmap');
-    // $x->save($account, 'github_connect',$github_user['html_url']);
-    // // Login.
-    // \Drupal::service('externalauth.externalauth')->login($github_user['html_url'], 'github_connect');
-    
-//    user_set_authmaps($account, array('authname_github_connect' => $github_user['html_url']));
     // Store GitHub user with token.
     if ($account) {
       db_insert('github_connect_users')
