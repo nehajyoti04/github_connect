@@ -92,14 +92,6 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
 //    $config = $this->configFactory->get('github_connect.settings');
    $client_id = $this->config->get('github_connect_client_id');
    $client_secret = $this->config->get('github_connect_client_secret');
-    // $client_id = \Drupal::config('github_connect.settings')->get('github_connect_client_id');
-    // $client_secret = \Drupal::config('github_connect.settings')->get('github_connect_client_secret');
-   // $client_id = 'b2235973f6ec11c2e212';
-   // $client_secret = 'ed567db3f78264cbd0b021022ca2681b1417a86e';
-//    print '<pre>'; print_r("client id"); print '</pre>';
-//    print '<pre>'; print_r($client_id); print '</pre>';
-//    print '<pre>'; print_r("client secret"); print '</pre>';
-//    print '<pre>'; print_r($client_secret); print '</pre>';
     // The response code after first call to GitHub.
     $code = $_GET['code'];
 

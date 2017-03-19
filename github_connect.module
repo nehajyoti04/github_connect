@@ -89,14 +89,8 @@ function github_connect_connect_block() {
     return FALSE;
   }
 
-//  $config = $this->configFactory->get('github_connect.settings');
-//  $client_id = $config->get('github_connect_client_id');
   // $client_id = \Drupal::state()->get('github_connect_client_id');
   $client_id = \Drupal::config('github_connect.settings')->get('github_connect_client_id');
-//  $client_secret = \Drupal::config('github_connect.settings')->get('github_connect_client_secret');
-
-//  $client_id = 'b2235973f6ec11c2e212';
-
 
   $current_request = \Drupal::service('request_stack')->getCurrentRequest();
 
