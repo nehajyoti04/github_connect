@@ -16,7 +16,7 @@ function github_connect_install() {
  */
 function github_connect_uninstall() {
   // Delete our module's variable from the variables table.
-  \Drupal::state()->delete('github_connect.admin_config');
+  \Drupal::state()->delete('github_connect.settings');
 }
 
 /**
@@ -47,7 +47,7 @@ function github_connect_schema() {
   );
 
   // Setting our own external authentication functionality.
-  $schema['authmap'] = array(
+  $schema['github_connect_authmap'] = array(
     'description' => 'Stores distributed authentication mapping.',
     'fields' => array(
       'uid' => array(

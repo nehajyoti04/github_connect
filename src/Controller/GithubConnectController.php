@@ -85,12 +85,17 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
   public function github_connect_get_access_token() {
     // Get current user data.
     $uid = $this->account->id();
+    $account = $this->account;
+
+
 
 //    $config = $this->configFactory->get('github_connect.settings');
-//    $client_id = $this->config->get('github_connect_client_id');
-//    $client_secret = $this->config->get('github_connect_client_secret');
-    $client_id = \Drupal::config('github_connect.settings')->get('github_connect_client_id');
-    $client_secret = \Drupal::config('github_connect.settings')->get('github_connect_client_secret');
+   $client_id = $this->config->get('github_connect_client_id');
+   $client_secret = $this->config->get('github_connect_client_secret');
+    // $client_id = \Drupal::config('github_connect.settings')->get('github_connect_client_id');
+    // $client_secret = \Drupal::config('github_connect.settings')->get('github_connect_client_secret');
+   // $client_id = 'b2235973f6ec11c2e212';
+   // $client_secret = 'ed567db3f78264cbd0b021022ca2681b1417a86e';
 //    print '<pre>'; print_r("client id"); print '</pre>';
 //    print '<pre>'; print_r($client_id); print '</pre>';
 //    print '<pre>'; print_r("client secret"); print '</pre>';
@@ -132,11 +137,20 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
 
     if ($token) {
       // Check if a user exists for the token.
-      $account = $this->github_connect_get_token_user($token);
+      // $account = $this->github_connect_get_token_user($token);
+      
+      // Get user details from GitHub to handle user association.
+      $github_user = $this->_github_connect_get_github_user_info($token);
+      if ($github_user && !empty($github_user['html_url'])) {
+        //Check the authmap for an existing associated account.
+        $account = $this->github_connect_user_external_load($github_user['html_url']);
+      }
+ 
       if ($uid == 0) { // First the case where an anonymous user attempts a login
         if ($account) { // If there is a user with the token log that user in.
           $this->_github_connect_user_login($account);
-          $response = new RedirectResponse('');
+          $redirect_url = $this->url('<front>');
+          $response = new RedirectResponse($redirect_url);
           $response->send();
           return $response;
         }
@@ -243,8 +257,11 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
    * Log the user with the given account in
    */
   public static function _github_connect_user_login($account) {
-    $form_state['uid'] = $account->id();
+    // $form_state['uid'] = $account->id();
+    $uid = $account->id();
 //    user_login_submit(array(), $form_state);
+    $user = User::load($uid);
+user_login_finalize($user);
   }
 
   /**
@@ -361,6 +378,18 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       return;
     }
   }
+
+  public function github_connect_user_external_load($authname) {
+    $uid = db_query("SELECT uid FROM {github_connect_authmap} WHERE authname = :authname", array(':authname' => $authname))->fetchField();
+
+    if ($uid) {
+      return user_load($uid);
+    }
+    else {
+      return FALSE;
+    }
+  }
+  
   /**
    * Save the new GitHub user in github_connect_users
    */
@@ -370,18 +399,20 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
     // Set the authmap.
 //    $s = new ExternalAuth;
 //    $s->register($account, 'github_connect', $github_user['html_url']);
-//    db_insert('authmap')
-//      ->fields(array(
-//        'uid' => $account->id(),
-//        'provider' => 'github_connect',
-//        'authname' => $github_user['html_url'],
-//      ))
-//      ->execute();
+   db_insert('github_connect_authmap')
+     ->fields(array(
+       'uid' => $account->id(),
+       'provider' => 'github_connect',
+       'authname' => $github_user['html_url'],
+     ))
+     ->execute();
 //    $this->authmap = \Drupal::service('externalauth.authmap');
-    $x = \Drupal::service('externalauth.authmap');
-    $x->save($account, 'github_connect',$github_user['html_url']);
-    // Login.
-    \Drupal::service('externalauth.externalauth')->login($github_user['html_url'], 'github_connect');
+
+    // $x = \Drupal::service('externalauth.authmap');
+    // $x->save($account, 'github_connect',$github_user['html_url']);
+    // // Login.
+    // \Drupal::service('externalauth.externalauth')->login($github_user['html_url'], 'github_connect');
+    
 //    user_set_authmaps($account, array('authname_github_connect' => $github_user['html_url']));
     // Store GitHub user with token.
     if ($account) {

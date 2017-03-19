@@ -40,10 +40,10 @@ class VerifyEmailForm extends FormBase {
   /**
    * Class constructor.
    */
-  public function __construct(AccountInterface $account, UserAuth $user_auth) {
-    $this->account = $account;
-    $this->userAuth = $user_auth;
-  }
+  // public function __construct(AccountInterface $account, UserAuth $user_auth) {
+  //   $this->account = $account;
+  //   $this->userAuth = $user_auth;
+  // }
   /**
    * {@inheritdoc}
    */
@@ -55,25 +55,25 @@ class VerifyEmailForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, $uid = '', $token = '') {
-    $site_name =  $this->configFactory->get('system.site')->get('name');
+    // $site_name =  $this->configFactory->get('system.site')->get('name');
     if (!$uid) {
-      $account = $this->account;
-//      $account = \Drupal::currentUser();
+      // $account = $this->account;
+     $account = \Drupal::currentUser();
     } else {
       $account = \Drupal\user\Entity\User::load($uid);// pass your uid
     }
     $name = $account->get('name')->value;
-    $form['message'] = array(
-      '#type' => 'item',
-      '#title' => $this->t('Email address in use'),
-      '#markup' => $this->t('There is already an account associated with your GitHub email address. Type your %site account password to merge accounts.', array('%site' => $site_name)),
-    );
+    // $form['message'] = array(
+    //   '#type' => 'item',
+    //   '#title' => $this->t('Email address in use'),
+    //   '#markup' => $this->t('There is already an account associated with your GitHub email address. Type your %site account password to merge accounts.', array('%site' => $site_name)),
+    // );
     $form['name'] = array('#type' => 'hidden', '#value' => $name);
-    $form['pass'] = array('#type' => 'password',
-      '#title' => $this->t('Password'),
-      '#description' => $this->t('Enter your password.'),
-      '#required' => TRUE,
-    );
+    // $form['pass'] = array('#type' => 'password',
+    //   '#title' => $this->t('Password'),
+    //   '#description' => $this->t('Enter your password.'),
+    //   '#required' => TRUE,
+    // );
     $form['token'] = array('#type' => 'hidden', '#value' => $token);
     $form['actions'] = array('#type' => 'actions');
     $form['actions']['submit'] = array('#type' => 'submit', '#value' => $this->t('Merge accounts'));
@@ -85,21 +85,21 @@ class VerifyEmailForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    $name = $form_state->getValues()['name'];
-    $password = $form_state->getValues()['pass'];
+  // public function validateForm(array &$form, FormStateInterface $form_state) {
+  //   $name = $form_state->getValues()['name'];
+  //   $password = $form_state->getValues()['pass'];
 
-    if ($this->userAuth->authenticate($name, $password) == FALSE) {
-      $form_state->setErrorByName('pass', $this->t('Incorrect password.'));
-    }
+  //   // if ($this->userAuth->authenticate($name, $password) == FALSE) {
+  //   //   $form_state->setErrorByName('pass', $this->t('Incorrect password.'));
+  //   // }
 
-  }
+  // }
 
   /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $account = user_load_by_name($form_state['values']['name']);
+    $account = user_load_by_name($form_state->getValues()['name']);
     $token = $form_state->getValues()['token'];
 
     GithubConnectController::_github_connect_save_github_user($account, $token);

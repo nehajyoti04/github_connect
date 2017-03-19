@@ -1,4 +1,4 @@
-github_connect.admin_config:
+github_connect.settings:
   path: '/admin/config/people/github'
   defaults:
     _form: '\Drupal\github_connect\Form\GithubConnectAdminSettingForm'
