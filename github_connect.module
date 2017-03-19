@@ -29,6 +29,9 @@ function github_connect_user_delete(\Drupal\user\UserInterface $account) {
     db_delete('github_connect_users')
       ->condition('uid', $account->id())
       ->execute();
+    db_delete('github_connect_authmap')
+      ->condition('uid', $account->id())
+      ->execute();
   }
 }
 
