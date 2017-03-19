@@ -4,6 +4,7 @@
  * @file
  * Gives site visitors the ability to log in with GitHub (http://github.com).
  */
+
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 
@@ -38,10 +39,6 @@ function github_connect_form_user_login_block_alter(&$form, &$form_state) {
   _github_connect_user_login_form_alter($form, $form_state);
 }
 
-//function github_connect_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-//  print "hello";
-//  print $form_id; exit;
-//}
 /**
  * Implements hook_form_FORM_ID_alter().
  */

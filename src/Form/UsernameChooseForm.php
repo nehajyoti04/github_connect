@@ -23,9 +23,7 @@ use Drupal\github_connect\Controller\GithubConnectController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
- * Class AddForm.
- *
- * @package Drupal\github_connect\Form\GithubConnectForm
+ * Class UsernameChooseForm
  */
 class UsernameChooseForm extends FormBase {
 
@@ -113,7 +111,7 @@ class UsernameChooseForm extends FormBase {
     $token = $form_state->getValues()['token'];
     $github_user = GithubConnectController::_github_connect_get_github_user_info($token);
     // Change the login name to the newly selected name
-    $github_user['login'] = $form_state['values']['name_new'];
+    $github_user['login'] = $form_state->getValues()['name_new'];
 
     GithubConnectController::_github_connect_register($github_user, $token);
     $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
