@@ -101,7 +101,6 @@ class UsernameChooseForm extends FormBase {
     if (user_load_by_name($name_new)) {
       $form_state->setErrorByName('name_new', $this->t('This username already exists, please choose another one.'));
     }
-
   }
 
   /**
