@@ -96,7 +96,7 @@ class UsernameChooseForm extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
 
-    $name_new = $form_state['values']['name_new'];
+    $name_new = $form_state->getValues()['name_new'];
 
     if (user_load_by_name($name_new)) {
       $form_state->setErrorByName('name_new', $this->t('This username already exists, please choose another one.'));

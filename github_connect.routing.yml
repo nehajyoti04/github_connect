@@ -13,6 +13,7 @@ github_connect.register:
     _controller: '\Drupal\github_connect\Controller\GithubConnectController::github_connect_get_access_token'
     _title: 'Connected to Github'
   requirements:
+    # Needs to be accessed by an anonymous user.
     _access: 'TRUE'
 
 github.username:
@@ -29,4 +30,5 @@ github_connect.verify:
     _form: '\Drupal\github_connect\Form\VerifyEmailForm'
     _title: 'Merge accounts'
   requirements:
+  # Can be accessed by an anonymous user.
     _access: 'TRUE'

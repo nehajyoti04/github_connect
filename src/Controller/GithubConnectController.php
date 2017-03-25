@@ -85,7 +85,6 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
 
     if ($token) {
       // Check if a user exists for the token.
-
       // Get user details from GitHub to handle user association.
       $github_user = $this->_github_connect_get_github_user_info($token);
       if ($github_user && !empty($github_user['html_url'])) {
@@ -186,9 +185,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       if (empty($uid)) {
         return FALSE;
       }
-//      return $this->userStorage->load($uid);
-
-      return user_load($uid);
+      return User::load($uid);
     }
   }
 
@@ -213,13 +210,6 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       $github_user = $cache;
     } else {
       // Collects the User information from GitHub.
-//      $options = array(
-//        'method' => 'GET',
-//        'timeout' => 7200,
-//      );
-//      $client = \Drupal::client();
-//      $result = $client->get('https://www.drupal.org');
-
       $client = \Drupal::httpClient();
       $ghuser = $client->request('GET', 'https://api.github.com/user?access_token=' . $token .'&scope=user&token_type=bearer');
       // TODO pass timeout value.
@@ -244,11 +234,6 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       $github_user_emails = $cache;
     } else {
       // Collects the User information from GitHub.
-      $options = array(
-        'method' => 'GET',
-        'timeout' => 7200,
-      );
-      
       $client = \Drupal::httpClient();
       $ghuser = $client->request('GET', 'https://api.github.com/user/emails?access_token='. $token . '&scope=user&token_type=bearer');
       $data = (string) $ghuser->getBody();
@@ -280,13 +265,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
 
       // Log in the stored user.
       self::_github_connect_user_login($account);
-
-//      return self::redirect('');
-//      if (!$this->isRedirect()) {
-//        throw new \InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $status));
-//      }
       global $base_url;
-      $redirect_url = $this->url('<front>');
       $response = new RedirectResponse($base_url);
       $response->send();
       return;
@@ -301,7 +280,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
     $uid = db_query("SELECT uid FROM {github_connect_authmap} WHERE authname = :authname", array(':authname' => $authname))->fetchField();
 
     if ($uid) {
-      return user_load($uid);
+      return User::load($uid);
     }
     else {
       return FALSE;

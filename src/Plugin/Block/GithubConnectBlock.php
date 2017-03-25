@@ -92,9 +92,9 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface, Cont
   public function build() {
     global $base_url;
 
+
     $config = $this->configFactory->get('github_connect.settings');
     $client_id = $config->get('github_connect_client_id');
-    $client_id = \Drupal::config('github_connect.settings')->get('github_connect_client_id');
 
     $current_request = $this->requestStack->getCurrentRequest();
 
