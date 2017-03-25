@@ -1,3 +1,4 @@
 administer github connect settings:
   title: 'Administer Github Connect settings'
   restrict access: TRUE
+

@@ -38,20 +38,20 @@ function github_connect_user_delete(UserInterface $account) {
  * Implements hook_form_FORM_ID_alter().
  */
 function github_connect_form_user_login_block_alter(&$form, &$form_state) {
-  _github_connect_user_login_form_alter($form, $form_state);
+  githubConnectUserLogin_form_alter($form, $form_state);
 }
 
 /**
  * Implements hook_form_FORM_ID_alter().
  */
 function github_connect_form_user_login_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  _github_connect_user_login_form_alter($form, $form_state);
+  githubConnectUserLogin_form_alter($form, $form_state);
 }
 
 /**
  * Callback function to display block.
  */
-function _github_connect_user_login_form_alter(&$form, FormStateInterface $form_state) {
+function githubConnectUserLogin_form_alter(&$form, FormStateInterface $form_state) {
   $form['github_links'] = array(
     '#type' => 'markup',
     '#markup' => github_connect_connect_block(),

@@ -15,7 +15,6 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Routing\LinkGeneratorTrait;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Block\BlockBase;
-use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -27,7 +26,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   admin_label = @Translation("Github Connect"),
  * )
  */
-class GithubConnectBlock extends BlockBase implements BlockPluginInterface, ContainerFactoryPluginInterface{
+class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInterface{
   use LinkGeneratorTrait;
   /**
    * Stores the configuration factory.
@@ -40,7 +39,7 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface, Cont
    * GithubConnectBlock constructor.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    */
-  public function __construct( ConfigFactoryInterface $config_factory) {
+  public function __construct(ConfigFactoryInterface $config_factory) {
 
     $this->configFactory = $config_factory;
   }

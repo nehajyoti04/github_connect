@@ -10,7 +10,7 @@ github_connect.settings:
 github_connect.register:
   path: '/github/register/create'
   defaults:
-    _controller: '\Drupal\github_connect\Controller\GithubConnectController::github_connect_get_access_token'
+    _controller: '\Drupal\github_connect\Controller\GithubConnectController::githubConnectGetAccessToken'
     _title: 'Connected to Github'
   requirements:
     # Needs to be accessed by an anonymous user.

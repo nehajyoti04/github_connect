@@ -6,12 +6,6 @@
  */
 
 /**
- * Implements hook_install().
- */
-function github_connect_install() {
-}
-
-/**
  * Implements hook_uninstall().
  */
 function github_connect_uninstall() {
