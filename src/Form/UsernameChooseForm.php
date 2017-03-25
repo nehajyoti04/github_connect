@@ -20,6 +20,7 @@ use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Form;
 use Drupal\github_connect\Controller\GithubConnectController;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -41,12 +42,28 @@ class UsernameChooseForm extends FormBase {
    */
   protected $redirectDestination;
 
+  protected $github_connect_controller;
+
   /**
    * Class constructor.
    */
-  public function __construct(AccountInterface $account, RedirectDestinationInterface $redirect_destination) {
+  public function __construct(AccountInterface $account, RedirectDestinationInterface $redirect_destination, GithubConnectController $githubConnectController) {
     $this->account = $account;
     $this->redirectDestination = $redirect_destination;
+    $this->github_connect_controller = $githubConnectController;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    // Instantiates this form class.
+    return new static(
+    // Load the service required to construct this class.
+      $container->get('current_user'),
+      $container->get('redirect.destination'),
+      $container->get('github_connect_controller')
+    );
   }
 
   /**
@@ -60,8 +77,8 @@ class UsernameChooseForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, $user='', $token = '') {
-    if (!$user) {
-      $account = $this->account->name;
+    if (!$this->account->getAccountName()) {
+      $account = $this->account->getAccountName();
 //      $account = \Drupal::currentUser()->name;
     } else {
       $account = $user;
@@ -73,7 +90,7 @@ class UsernameChooseForm extends FormBase {
         different username for use on %site. This will not change your github username and you will continue to be able
         to log in with your github account.',
         array(
-          '%site' => $this->configFactory->get('system.site')->get('name'),
+          '%site' => $this->config('system.site')->get('name'),
           '%account_name' => $account,
         )),
     );
@@ -111,8 +128,9 @@ class UsernameChooseForm extends FormBase {
     $github_user = GithubConnectController::_github_connect_get_github_user_info($token);
     // Change the login name to the newly selected name
     $github_user['login'] = $form_state->getValues()['name_new'];
+    $this->github_connect_controller->_github_connect_register($github_user, $token);
 
-    GithubConnectController::_github_connect_register($github_user, $token);
+//    new GithubConnectController->_github_connect_register($github_user, $token);
     $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
     return new RedirectResponse($url);
   }
