@@ -92,34 +92,30 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
         $account = $this->github_connect_user_external_load($github_user['html_url']);
       }
  
-      if ($uid == 0) { // First the case where an anonymous user attempts a login
-        if ($account) { // If there is a user with the token log that user in.
+      if ($uid == 0) {
+        // First the case where an anonymous user attempts a login.
+        if ($account) {
+          // If there is a user with the token log that user in.
           $this->_github_connect_user_login($account);
           $redirect_url = $this->url('<front>');
           $response = new RedirectResponse($redirect_url);
           $response->send();
           return $response;
         }
-        else { // Otherwise register the user and log in
+        else {
+          // Otherwise register the user and log in
           $github_user = $this->_github_connect_get_github_user_info($token);
 
           if ($existing_user_by_mail = user_load_by_mail($github_user['email'])) {
-            // If a user with this email address exists, let him connect the github account to his already created account.
+            // If a user with this email address exists, let him connect the
+            // github account to his already created account.
             return $this->redirect('github_connect.verify', array('uid' => $existing_user_by_mail->id(), 'token' => $token));
-//            $url = 'github/verify/email/' . $existing_user_by_mail->id() . '/' . $token;
-//            return new RedirectResponse($url);
-//            $response = new RedirectResponse();
-//            $response->send();
-//            return;
           }
           else {
 
-            // Otherwise make sure there is no account with the same username
+            // Otherwise make sure there is no account with the same username.
             if ($existing_user_by_name = user_load_by_name($github_user['login'])) {
               return $this->redirect('github.username', array('user' => $existing_user_by_name->id(), 'token' => $token));
-//              $response = new RedirectResponse('github/username/' . $existing_user_by_name->id() . '/' . $token);
-//              $response->send();
-//              return;
             } else {
               $this->_github_connect_register($github_user, $token);
               $redirect_url = $this->url('<front>');
@@ -130,7 +126,9 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
           }
         }
       }
-      else { // Second the case where an logged in user attempts to attach his github account
+      else {
+        // Second the case where an logged in user attempts to attach his github
+        // account.
         if ($account) {
           // If there is a user with the token, throw an error.
           drupal_set_message($this->t('Your GitHub account could not be connected, it is already coupled with another user.'), 'error');

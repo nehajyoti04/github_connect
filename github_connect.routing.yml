@@ -22,6 +22,7 @@ github.username:
     _form: '\Drupal\github_connect\Form\UsernameChooseForm'
     _title: 'Choose your username'
   requirements:
+  # Can be accessed by an anonymous user.
     _access: 'TRUE'
 
 github_connect.verify:

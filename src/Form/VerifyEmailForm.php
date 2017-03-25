@@ -37,13 +37,21 @@ class VerifyEmailForm extends FormBase implements UserAuthInterface {
   protected $password_checker;
 
   /**
+   * The current account.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $account;
+
+  /**
    * Constructs a UserAuth object.
    *
    * @param \Drupal\Core\Password\PasswordInterface $password_checker
    *   The password service.
    */
-  public function __construct(PasswordInterface $password_checker) {
+  public function __construct(PasswordInterface $password_checker, AccountInterface $account) {
     $this->password_checker = $password_checker;
+    $this->account = $account;
   }
 
   /**
@@ -51,6 +59,7 @@ class VerifyEmailForm extends FormBase implements UserAuthInterface {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('current_user'),
       $container->get('password')
     );
   }
@@ -164,11 +173,6 @@ class VerifyEmailForm extends FormBase implements UserAuthInterface {
         if ($this->password_checker->check($password, $account->getPassword())) {
           // Successful authentication.
           $uid = $account->id();
-
-          // // Update user to new password scheme if needed.
-          // if (user_needs_new_hash($account)) {
-          //   user_save($account, array('pass' => $password));
-          // }
         }
       }
     }

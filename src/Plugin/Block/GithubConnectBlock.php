@@ -17,9 +17,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Url;
-use Drupal\github_connect\GithubConnectConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Provides a 'github_connect' block.
@@ -39,27 +37,12 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface, Cont
   protected $configFactory;
 
   /**
-   * RequestStack object for getting requests.
-   *
-   * @var \Symfony\Component\HttpFoundation\RequestStack
-   */
-  private $requestStack;
-
-  /**
    * GithubConnectBlock constructor.
-   * @param array $configuration
-   * @param string $plugin_id
-   * @param mixed $plugin_definition
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory, RequestStack $requestStack) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  public function __construct( ConfigFactoryInterface $config_factory) {
 
     $this->configFactory = $config_factory;
-    $this->requestStack = $requestStack;
-
-//    $this->setConfiguration($configuration);
-//    $this->settings = $config->settings;
   }
 
   /**
@@ -67,11 +50,7 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface, Cont
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('config.factory'),
-      $container->get('request_stack')
+      $container->get('config.factory')
     );
   }
 
@@ -96,12 +75,8 @@ class GithubConnectBlock extends BlockBase implements BlockPluginInterface, Cont
     $config = $this->configFactory->get('github_connect.settings');
     $client_id = $config->get('github_connect_client_id');
 
-    $current_request = $this->requestStack->getCurrentRequest();
-
-    $destination = $current_request->query->get('destination');
-
     $option = [
-      'query' => ['client_id' => $client_id, 'scope' => 'user,public', 'uri' => urlencode($base_url . '/github/register/create?destination=' . $destination['destination'])
+      'query' => ['client_id' => $client_id, 'scope' => 'user,public', 'uri' => urlencode($base_url . '/github/register/create')
       ],
     ];
     $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
