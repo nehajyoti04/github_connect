@@ -11,13 +11,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RedirectDestinationInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Url;
-use Drupal\Component\Utility\UrlHelper;
-use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\ChangedCommand;
-use Drupal\Core\Ajax\CssCommand;
-use Drupal\Core\Ajax\HtmlCommand;
-use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Form;
 use Drupal\github_connect\Controller\GithubConnectController;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -36,12 +29,8 @@ class UsernameChooseForm extends FormBase {
   protected $account;
 
   /**
-   * The redirect destination service.
-   *
-   * @var \Drupal\Core\Routing\RedirectDestinationInterface
+   * @var \Drupal\github_connect\Controller\GithubConnectController
    */
-  protected $redirectDestination;
-
   protected $github_connect_controller;
 
   /**
@@ -49,7 +38,6 @@ class UsernameChooseForm extends FormBase {
    */
   public function __construct(AccountInterface $account, RedirectDestinationInterface $redirect_destination, GithubConnectController $githubConnectController) {
     $this->account = $account;
-    $this->redirectDestination = $redirect_destination;
     $this->github_connect_controller = $githubConnectController;
   }
 
@@ -61,7 +49,6 @@ class UsernameChooseForm extends FormBase {
     return new static(
     // Load the service required to construct this class.
       $container->get('current_user'),
-      $container->get('redirect.destination'),
       $container->get('github_connect_controller')
     );
   }
@@ -79,7 +66,6 @@ class UsernameChooseForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, $user='', $token = '') {
     if (!$this->account->getAccountName()) {
       $account = $this->account->getAccountName();
-//      $account = \Drupal::currentUser()->name;
     } else {
       $account = $user;
     }
@@ -125,13 +111,15 @@ class UsernameChooseForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $token = $form_state->getValues()['token'];
-    $github_user = GithubConnectController::_github_connect_get_github_user_info($token);
+    $github_user = GithubConnectController::githubConnectGetGithubUserInfo($token);
 
     // Change the login name to the newly selected name
     $github_user['login'] = $form_state->getValues()['name_new'];
-    $this->github_connect_controller->_github_connect_register($github_user, $token);
-    $url =  Url::fromUserInput(\Drupal::destination()->get())->setAbsolute()->toString();
-    return new RedirectResponse($url);
+    $this->github_connect_controller->githubConnectRegister($github_user, $token);
+    $redirect_url = $this->url('<front>');
+    $response = new RedirectResponse($redirect_url);
+    $response->send();
+    return $response;
   }
 
 }

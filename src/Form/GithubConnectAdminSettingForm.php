@@ -10,16 +10,33 @@ use Drupal\Core\Form\FormStateInterface;
  * Administration page callbacks for the GitHub connect module.
  */
 
+/**
+ * Class GithubConnectAdminSettingForm.
+ *
+ * @package Drupal\github_connect\Form
+ */
 class GithubConnectAdminSettingForm extends ConfigFormBase {
+
+  /**
+   * {@inheritdoc}
+   */
   public function getFormId() {
     return 'github_connect_settings';
   }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getEditableConfigNames() {
     return [
       'github_connect.settings',
     ];
 
   }
+
+  /**
+   * {@inheritdoc}
+   */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
     $config = $this->config('github_connect.settings');
@@ -52,6 +69,9 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
     return parent::buildForm($form, $form_state);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
     $this->config('github_connect.settings')
@@ -62,4 +82,5 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
     // Set values in variables.
     parent::submitForm($form, $form_state);
   }
+
 }
