@@ -1,2 +1,3 @@
-permission_callbacks:
-  - Drupal\github_connect\GithubConnectPermissions::permissions
+administer github connect settings:
+  title: 'Administer Github Connect settings'
+  restrict access: TRUE
