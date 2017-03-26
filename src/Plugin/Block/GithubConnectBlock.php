@@ -1,15 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains Drupal\github_connect\Plugin\Block\GithubConnectBlock.
- */
-
 namespace Drupal\github_connect\Plugin\Block;
 
 use Drupal\Core\Access\AccessResult;
-use Drupal\Core\Annotation\Translation;
-use Drupal\Core\Block\Annotation\Block;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Routing\LinkGeneratorTrait;
@@ -26,7 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   admin_label = @Translation("Github Connect"),
  * )
  */
-class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInterface{
+class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInterface {
   use LinkGeneratorTrait;
   /**
    * Stores the configuration factory.
@@ -37,7 +30,9 @@ class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInte
 
   /**
    * GithubConnectBlock constructor.
+   *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   A config factory for retrieving required config objects.
    */
   public function __construct(ConfigFactoryInterface $config_factory) {
 
@@ -58,7 +53,7 @@ class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInte
    */
   protected function blockAccess(AccountInterface $account) {
 
-    if ($account->isAnonymous() ) {
+    if ($account->isAnonymous()) {
       return AccessResult::allowed();
     }
     return AccessResult::forbidden();
@@ -70,12 +65,14 @@ class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInte
   public function build() {
     global $base_url;
 
-
     $config = $this->configFactory->get('github_connect.settings');
     $client_id = $config->get('github_connect_client_id');
 
     $option = [
-      'query' => ['client_id' => $client_id, 'scope' => 'user,public', 'uri' => urlencode($base_url . '/github/register/create')
+      'query' => [
+        'client_id' => $client_id,
+        'scope' => 'user,public',
+        'uri' => urlencode($base_url . '/github/register/create')
       ],
     ];
     $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);

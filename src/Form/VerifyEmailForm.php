@@ -47,8 +47,8 @@ class VerifyEmailForm extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('current_user'),
-      $container->get('password')
+      $container->get('password'),
+      $container->get('current_user')
     );
   }
 

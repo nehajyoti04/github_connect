@@ -1,23 +1,17 @@
 <?php
 
-/**
- * @file
- * Contains Drupal\github_connectForm\AddForm
- */
-
 namespace Drupal\github_connect\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RedirectDestinationInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Form;
 use Drupal\github_connect\Controller\GithubConnectController;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
- * Class UsernameChooseForm
+ * Class UsernameChooseForm.
  */
 class UsernameChooseForm extends FormBase {
 
@@ -31,14 +25,14 @@ class UsernameChooseForm extends FormBase {
   /**
    * @var \Drupal\github_connect\Controller\GithubConnectController
    */
-  protected $github_connect_controller;
+  protected $githubConnectController;
 
   /**
    * Class constructor.
    */
   public function __construct(AccountInterface $account, RedirectDestinationInterface $redirect_destination, GithubConnectController $githubConnectController) {
     $this->account = $account;
-    $this->github_connect_controller = $githubConnectController;
+    $this->githubConnectController = $githubConnectController;
   }
 
   /**
@@ -63,10 +57,11 @@ class UsernameChooseForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, $user='', $token = '') {
+  public function buildForm(array $form, FormStateInterface $form_state, $user = '', $token = '') {
     if (!$this->account->getAccountName()) {
       $account = $this->account->getAccountName();
-    } else {
+    }
+    else {
       $account = $user;
     }
     $form['message'] = array(
@@ -81,7 +76,8 @@ class UsernameChooseForm extends FormBase {
         )),
     );
     $form['name'] = array('#type' => 'hidden', '#value' => $account->name);
-    $form['name_new'] = array('#type' => 'textfield',
+    $form['name_new'] = array(
+      '#type' => 'textfield',
       '#title' => $this->t('New username'),
       '#description' => $this->t('Enter another username.'),
       '#required' => TRUE,
@@ -113,9 +109,9 @@ class UsernameChooseForm extends FormBase {
     $token = $form_state->getValues()['token'];
     $github_user = GithubConnectController::githubConnectGetGithubUserInfo($token);
 
-    // Change the login name to the newly selected name
+    // Change the login name to the newly selected name.
     $github_user['login'] = $form_state->getValues()['name_new'];
-    $this->github_connect_controller->githubConnectRegister($github_user, $token);
+    $this->githubConnectController->githubConnectRegister($github_user, $token);
     $redirect_url = $this->url('<front>');
     $response = new RedirectResponse($redirect_url);
     $response->send();
