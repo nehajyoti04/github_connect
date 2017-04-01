@@ -2,14 +2,14 @@
 
 namespace Drupal\github_connect\Controller;
 
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Database\Driver\mysql\Connection;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\github_connect\GithubConnectService;
 use Drupal\user\Entity\User;
-use Drupal\views\Plugin\views\argument\StringArgument;
-use GuzzleHttp;
+use GuzzleHttp\Client;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -34,27 +34,58 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
    */
   protected $url;
 
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $connection;
+
+  /**
+   * The configuration factory.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
   protected $config;
+
+  /**
+   * The HTTP client to fetch the feed data with.
+   *
+   * @var \GuzzleHttp\ClientInterface
+   */
+  protected $httpClient;
+
+  /**
+   * GithubController Class Service.
+   *
+   * @var \Drupal\github_connect\GithubConnectService
+   */
+  protected $githubConnectService;
 
   /**
    * Class constructor.
    */
-  public function __construct(AccountInterface $account, $url, ConfigFactoryInterface $config_factory) {
+  public function __construct(AccountInterface $account, $url, Connection $connection, ConfigFactoryInterface $config_factory, Client $client, GithubConnectService $githubConnectService) {
     $this->account = $account;
     $this->url = $url;
+    $this->connection = $connection;
     $this->config = $config_factory->getEditable('github_connect.settings');
+    $this->httpClient = $client;
+    $this->githubConnectService = $githubConnectService;
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    // Instantiates this form class.
     return new static(
-    // Load the service required to construct this class.
+      // Load the service required to construct this class.
       $container->get('current_user'),
       $container->get('url_generator'),
-      $container->get('config.factory')
+      $container->get('database'),
+      $container->get('config.factory'),
+      $container->get('http_client'),
+      $container->get('github_connect_service')
     );
   }
 
@@ -76,7 +107,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       'method' => 'POST',
     );
     $url1 = $url . $options['data'];
-    $client = \Drupal::httpClient();
+    $client = $this->httpClient;
     $response = $client->request('POST', $url1);
     $body = (string) $response->getBody();
     list($access_token) = explode('&', $body);
@@ -90,8 +121,9 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
     if ($token) {
       // Check if a user exists for the token.
       // Get user details from GitHub to handle user association.
-      $github_user = $this->githubConnectGetGithubUserInfo($token);
+      $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($token);
       if ($github_user && !empty($github_user['html_url'])) {
+
         // Check the authmap for an existing associated account.
         $account = $this->githubConnectUserExternalLoad($github_user['html_url']);
       }
@@ -100,7 +132,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
         // First the case where an anonymous user attempts a login.
         if ($account) {
           // If there is a user with the token log that user in.
-          $this->githubConnectUserLogin($account);
+          $this->githubConnectService->githubConnectUserLogin($account);
           $redirect_url = $this->url('<front>');
           $response = new RedirectResponse($redirect_url);
           $response->send();
@@ -108,7 +140,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
         }
         else {
           // Otherwise register the user and log in.
-          $github_user = $this->githubConnectGetGithubUserInfo($token);
+          $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($token);
 
           if ($existing_user_by_mail = user_load_by_mail($github_user['email'])) {
             // If a user with this email address exists, let him connect the
@@ -121,7 +153,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
               return $this->redirect('github.username', array('user' => $existing_user_by_name->id(), 'token' => $token));
             }
             else {
-              $this->githubConnectRegister($github_user, $token);
+              $this->githubConnectService->githubConnectRegister($github_user, $token);
               $redirect_url = $this->url('<front>');
               $response = new RedirectResponse($redirect_url);
               $response->send();
@@ -141,7 +173,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
           return $response;
         }
         else {
-          $github_user = $this->githubConnectGetGithubUserInfo($token);
+          $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($token);
 
           if (!$github_user['email']) {
             drupal_set_message($this->t('We could not connect your GitHub account. You need to have a public email address registered with your GitHub account.'), 'error');
@@ -151,7 +183,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
           }
 
           if ($github_user['html_url']) {
-            $this->githubConnectSaveGithubUser($account, $token);
+            $this->githubConnectService->githubConnectSaveGithubUser($account, $token);
             drupal_set_message($this->t('Your GitHub account is now connected.'));
             $response = new RedirectResponse('user/' . $uid . '/github');
             $response->send();
@@ -167,12 +199,13 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       $response->send();
       return $response;
     }
+    return FALSE;
   }
 
   /**
    * Get user from GitHub access token.
    *
-   * @param $token string
+   * @param string $token
    *   Access token from GitHub.
    *
    * @return bool|\Drupal\Core\Entity\EntityInterface|null|static
@@ -180,7 +213,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
    */
   public function githubConnectGetTokenUser($token) {
     if ($token) {
-      $result = db_select('github_connect_users', 'g_u')
+      $result = $this->connection->select('github_connect_users', 'g_u')
         ->fields('g_u', array('uid', 'access_token'))
         ->condition('access_token', $token, '=')
         ->execute()
@@ -192,134 +225,23 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       }
       return User::load($uid);
     }
-  }
-
-  /**
-   * Log the user with the given account in.
-   */
-  public static function githubConnectUserLogin($account) {
-    $uid = $account->id();
-    $user = User::load($uid);
-    user_login_finalize($user);
-  }
-
-  /**
-   * Get the user info provided by github.
-   *
-   * @param $token StringArgument
-   *   The token for the github user.
-   */
-  public static function githubConnectGetGithubUserInfo($token) {
-    $cache = &drupal_static(__FUNCTION__);
-
-    if (!is_null($cache)) {
-      $github_user = $cache;
-    }
-    else {
-      // Collects the User information from GitHub.
-      $client = \Drupal::httpClient();
-      $ghuser = $client->request('GET', 'https://api.github.com/user?access_token=' . $token . '&scope=user&token_type=bearer');
-      // TODO pass timeout value.
-      $data = (string) $ghuser->getBody();
-      $github_user = Json::decode($data);
-      $github_user_emails = self::githubConnectGetGithubUserEmails($token);
-      $github_user['email'] = $github_user_emails[0]['email'];
-    }
-
-    return $github_user;
-  }
-
-  /**
-   * Get the private email addresses from the user.
-   */
-  public static function githubConnectGetGithubUserEmails($token) {
-    $cache = &drupal_static(__FUNCTION__);
-
-    if (!is_null($cache)) {
-      $github_user_emails = $cache;
-    }
-    else {
-      // Collects the User information from GitHub.
-      $client = \Drupal::httpClient();
-      $ghuser = $client->request('GET', 'https://api.github.com/user/emails?access_token=' . $token . '&scope=user&token_type=bearer');
-      $data = (string) $ghuser->getBody();
-      $github_user_emails = Json::decode($data);
-    }
-
-    return $github_user_emails;
-  }
-
-  /**
-   * Register new user.
-   */
-  public function githubConnectRegister($github_user, $token) {
-    $username = $github_user['login'];
-
-    $userinfo = array(
-      'name' => $username,
-      'mail' => $github_user['email'],
-      'pass' => user_password(),
-      'status' => 1,
-      'access' => REQUEST_TIME,
-      'init' => $github_user['email'],
-    );
-
-    $account = entity_create('user', $userinfo);
-    $account->save();
-
-    if ($account) {
-      $this->githubConnectSaveGithubUser($account, $token);
-
-      // Log in the stored user.
-      self::githubConnectUserLogin($account);
-      global $base_url;
-      $response = new RedirectResponse($base_url);
-      $response->send();
-      return;
-    }
-    else {
-      drupal_set_message($this->t('Error saving new user.'), 'error');
-      return;
-    }
+    return FALSE;
   }
 
   /**
    * Authorizes wheather correct user is logged in or not.
    */
   public function githubConnectUserExternalLoad($authname) {
-    $uid = db_query("SELECT uid FROM {github_connect_authmap} WHERE authname = :authname", array(':authname' => $authname))->fetchField();
+    $uid = $this->connection->select('github_connect_authmap', 'gca')
+      ->fields('gca', ['uid'])
+      ->condition('authname', $authname)
+      ->execute()->fetchField();
 
     if ($uid) {
       return User::load($uid);
     }
     else {
       return FALSE;
-    }
-  }
-
-  /**
-   * Save the new GitHub user in github_connect_users.
-   */
-  public function githubConnectSaveGithubUser($account, $token) {
-    $github_user = self::githubConnectGetGithubUserInfo($token);
-
-    db_insert('github_connect_authmap')
-      ->fields(array(
-        'uid' => $account->id(),
-        'provider' => 'github_connect',
-        'authname' => $github_user['html_url'],
-      ))
-      ->execute();
-
-    // Store GitHub user with token.
-    if ($account) {
-      db_insert('github_connect_users')
-        ->fields(array(
-          'uid' => $account->id(),
-          'access_token' => $token,
-          'timestamp' => REQUEST_TIME,
-        ))
-        ->execute();
     }
   }
 

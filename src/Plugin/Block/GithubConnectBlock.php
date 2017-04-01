@@ -72,7 +72,7 @@ class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInte
       'query' => [
         'client_id' => $client_id,
         'scope' => 'user,public',
-        'uri' => urlencode($base_url . '/github/register/create')
+        'uri' => urlencode($base_url . '/github/register/create'),
       ],
     ];
     $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);

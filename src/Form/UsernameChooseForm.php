@@ -4,9 +4,8 @@ namespace Drupal\github_connect\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Routing\RedirectDestinationInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\github_connect\Controller\GithubConnectController;
+use Drupal\github_connect\GithubConnectService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -23,16 +22,18 @@ class UsernameChooseForm extends FormBase {
   protected $account;
 
   /**
-   * @var \Drupal\github_connect\Controller\GithubConnectController
+   * GithubController Class Service.
+   *
+   * @var \Drupal\github_connect\GithubConnectService
    */
-  protected $githubConnectController;
+  protected $githubConnectService;
 
   /**
    * Class constructor.
    */
-  public function __construct(AccountInterface $account, RedirectDestinationInterface $redirect_destination, GithubConnectController $githubConnectController) {
+  public function __construct(AccountInterface $account, GithubConnectService $githubConnectService) {
     $this->account = $account;
-    $this->githubConnectController = $githubConnectController;
+    $this->githubConnectService = $githubConnectService;
   }
 
   /**
@@ -43,7 +44,7 @@ class UsernameChooseForm extends FormBase {
     return new static(
     // Load the service required to construct this class.
       $container->get('current_user'),
-      $container->get('github_connect_controller')
+      $container->get('github_connect_service')
     );
   }
 
@@ -107,11 +108,11 @@ class UsernameChooseForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $token = $form_state->getValues()['token'];
-    $github_user = GithubConnectController::githubConnectGetGithubUserInfo($token);
+    $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($token);
 
     // Change the login name to the newly selected name.
     $github_user['login'] = $form_state->getValues()['name_new'];
-    $this->githubConnectController->githubConnectRegister($github_user, $token);
+    $this->githubConnectService->githubConnectRegister($github_user, $token);
     $redirect_url = $this->url('<front>');
     $response = new RedirectResponse($redirect_url);
     $response->send();

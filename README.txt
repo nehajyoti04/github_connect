@@ -4,7 +4,7 @@ CONTENTS OF THIS FILE
  * Introduction
  * Installation
  * Configuration
- * Author
+ * Maintainers
 
 INTRODUCTION
 ------------
@@ -30,7 +30,7 @@ modules settings page (/admin/config/people/github).
 * Place the GitHub Connect block where you want it to be displayed.
 
 
-AUTHOR
+Maintainers
 ---------------------
 
 vikom (Viktor Miranda)

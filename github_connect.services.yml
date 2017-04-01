@@ -1,4 +1,4 @@
 services:
-  github_connect_controller:
-    class: Drupal\github_connect\Controller\GithubConnectController
-    arguments: ['@current_user', '@url_generator', '@config.factory']
+  github_connect_service:
+    class: Drupal\github_connect\GithubConnectService
+    arguments: ['@database', '@http_client']

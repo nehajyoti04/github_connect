@@ -1,6 +1,4 @@
 name: Github Connect
 type: module
 description: "Enables connecting Drupal accounts with Github."
-package: Github
-core: '8.x'
-project: 'git_hub'
+core: 8.x

@@ -6,8 +6,7 @@ use Drupal\Core\Password\PasswordInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Form;
-use Drupal\github_connect\Controller\GithubConnectController;
+use Drupal\github_connect\GithubConnectService;
 use Drupal\user\Entity\User;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -32,14 +31,26 @@ class VerifyEmailForm extends FormBase {
   protected $account;
 
   /**
+   * The GithubConnect Service.
+   *
+   * @var \Drupal\github_connect\GithubConnectService
+   */
+  protected $githubConnectService;
+
+  /**
    * VerifyEmailForm constructor.
    *
    * @param \Drupal\Core\Password\PasswordInterface $passwordChecker
+   *   The password hashing service.
    * @param \Drupal\Core\Session\AccountInterface $account
+   *   The current account.
+   * @param \Drupal\github_connect\GithubConnectService $githubConnectService
+   *   The GithubConnect Service.
    */
-  public function __construct(PasswordInterface $passwordChecker, AccountInterface $account) {
+  public function __construct(PasswordInterface $passwordChecker, AccountInterface $account, GithubConnectService $githubConnectService) {
     $this->passwordChecker = $passwordChecker;
     $this->account = $account;
+    $this->githubConnectService = $githubConnectService;
   }
 
   /**
@@ -48,7 +59,8 @@ class VerifyEmailForm extends FormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('password'),
-      $container->get('current_user')
+      $container->get('current_user'),
+      $container->get('github_connect_service')
     );
   }
 
@@ -71,7 +83,7 @@ class VerifyEmailForm extends FormBase {
       // Pass your uid.
       $account = User::load($uid);
     }
-    $name = $account->get('name')->value;
+    $name = $account->getAccountName();
     $form['message'] = array(
       '#type' => 'item',
       '#title' => $this->t('Email address in use'),
@@ -109,11 +121,10 @@ class VerifyEmailForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $account = user_load_by_name($form_state->getValue('name'));
     $token = $form_state->getValue('token');
-
-    GithubConnectController::githubConnectSaveGithubUser($account, $token);
+    $this->githubConnectService->githubConnectSaveGithubUser($account, $token);
 
     // Log in the connected user.
-    GithubConnectController::githubConnectUserLogin($account);
+    $this->githubConnectService->githubConnectUserLogin($account);
     drupal_set_message($this->t('You are now connected with your GitHub account.'));
 
     $redirect_url = $this->url('<front>');
@@ -124,7 +135,6 @@ class VerifyEmailForm extends FormBase {
 
   /**
    * Authenticates if password being entered matches with the correct password.
-   * Validates user authentication credentials.
    *
    * @param string $name
    *   The user name to authenticate.
