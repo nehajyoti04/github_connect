@@ -1,6 +1,6 @@
 .github-links a {
     background-image: url("../login-github-bg.png");
-    background-position: left top; /* LTR */
+    background-position: left top;
     background-repeat: no-repeat;
-    padding: 0 0 0 1.5em; /* LTR */
+    padding: 0 0 0 1.5em;
 }
