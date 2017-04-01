@@ -46,6 +46,7 @@ function github_connect_form_user_login_block_alter(&$form, &$form_state) {
  */
 function github_connect_form_user_login_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   githubConnectUserLogin_form_alter($form, $form_state);
+  $form['#attributes']['class'][] = 'github-links';
 }
 
 /**

@@ -80,6 +80,10 @@ class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInte
     return array(
       '#type' => 'markup',
       '#markup' => $output,
+      '#attached' => [
+        'library' => ['github_connect/github_connect_icon']
+      ],
+      '#attributes' => array('class' => array('github-links')),
     );
 
   }
