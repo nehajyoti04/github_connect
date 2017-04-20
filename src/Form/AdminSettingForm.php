@@ -11,11 +11,11 @@ use Drupal\Core\Form\FormStateInterface;
  */
 
 /**
- * Class GithubConnectAdminSettingForm.
+ * Class AdminSettingForm.
  *
  * @package Drupal\github_connect\Form
  */
-class GithubConnectAdminSettingForm extends ConfigFormBase {
+class AdminSettingForm extends ConfigFormBase {
 
   /**
    * {@inheritdoc}
@@ -48,10 +48,10 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
       '#open' => TRUE,
     );
 
-    $form['github_connect_settings']['github_connect_client_id'] = array(
+    $form['github_connect_settings']['client_id'] = array(
       '#title' => $this->t('Client ID'),
       '#type' => 'textfield',
-      '#default_value' => $config->get('github_connect_client_id'),
+      '#default_value' => $config->get('client_id'),
       '#size' => 50,
       '#maxlength' => 50,
       '#required' => TRUE,
@@ -75,8 +75,8 @@ class GithubConnectAdminSettingForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
     $this->config('github_connect.settings')
-      ->set('github_connect_client_id', $form_state->getValues()['github_connect_client_id'])
-      ->set('github_connect_client_secret', $form_state->getValues()['github_connect_client_secret'])
+      ->set('client_id', $form_state->getValue('client_id'))
+      ->set('github_connect_client_secret', $form_state->getValue('github_connect_client_secret'))
       ->save();
 
     // Set values in variables.

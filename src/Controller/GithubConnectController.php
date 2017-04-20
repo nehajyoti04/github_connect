@@ -96,7 +96,7 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
     // Get current user data.
     $uid = $this->account->id();
     $account = $this->account;
-    $client_id = $this->config->get('github_connect_client_id');
+    $client_id = $this->config->get('client_id');
     $client_secret = $this->config->get('github_connect_client_secret');
 
     // The response code after first call to GitHub.

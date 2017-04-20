@@ -1,7 +1,7 @@
 github_connect.settings:
-  path: '/admin/config/people/github'
+  path: '/admin/config/people/github_connect'
   defaults:
-    _form: '\Drupal\github_connect\Form\GithubConnectAdminSettingForm'
+    _form: '\Drupal\github_connect\Form\AdminSettingForm'
     _title: 'Github settings'
     _description: 'Settings for connecting with Github.'
   requirements:
@@ -11,7 +11,7 @@ github_connect.register:
   path: '/github/register/create'
   defaults:
     _controller: '\Drupal\github_connect\Controller\GithubConnectController::githubConnectGetAccessToken'
-    _title: 'Connected to Github'
+    _title: 'Connect to Github'
   requirements:
     # Needs to be accessed by an anonymous user.
     _access: 'TRUE'

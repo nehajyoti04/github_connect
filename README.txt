@@ -26,7 +26,7 @@ CONFIGURATION
 --------------------------
 
 * Enter the Client ID and Client Secret from you GitHub application at the
-modules settings page (/admin/config/people/github).
+modules settings page (/admin/config/people/github_connect).
 * Place the GitHub Connect block where you want it to be displayed.
 
 

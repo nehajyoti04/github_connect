@@ -91,7 +91,7 @@ function github_connect_connect_block() {
     return FALSE;
   }
 
-  $client_id = \Drupal::config('github_connect.settings')->get('github_connect_client_id');
+  $client_id = \Drupal::config('github_connect.settings')->get('client_id');
   $current_request = \Drupal::service('request_stack')->getCurrentRequest();
 
   $destination = $current_request->query->get('destination');
