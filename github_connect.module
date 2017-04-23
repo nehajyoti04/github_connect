@@ -6,7 +6,6 @@
  */
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
 use Drupal\user\UserInterface;
 
 /**
@@ -38,24 +37,29 @@ function github_connect_user_delete(UserInterface $account) {
  * Implements hook_form_FORM_ID_alter().
  */
 function github_connect_form_user_login_block_alter(&$form, &$form_state) {
-  githubConnectUserLogin_form_alter($form, $form_state);
+  _github_connect_user_login_form_alter($form, $form_state);
 }
 
 /**
  * Implements hook_form_FORM_ID_alter().
  */
 function github_connect_form_user_login_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  githubConnectUserLogin_form_alter($form, $form_state);
+  _github_connect_user_login_form_alter($form, $form_state);
   $form['#attributes']['class'][] = 'github-links';
 }
 
 /**
  * Callback function to display block.
  */
-function githubConnectUserLogin_form_alter(&$form, FormStateInterface $form_state) {
+function _github_connect_user_login_form_alter(&$form, FormStateInterface $form_state) {
+
+  $block_manager = \Drupal::service('plugin.manager.block');
+  $config = [];
+  $block_plugin = $block_manager->createInstance('github_connect_block', $config)->build();
+
   $form['github_links'] = array(
     '#type' => 'markup',
-    '#markup' => github_connect_connect_block(),
+    '#markup' => render($block_plugin),
   );
 }
 
@@ -79,33 +83,4 @@ function github_connect_get_user_token($uid) {
     $token = $result['access_token'];
     return $token;
   }
-}
-
-/**
- * GitHub connect block.
- */
-function github_connect_connect_block() {
-  global $base_url;
-
-  if (!(\Drupal::currentUser()->isAnonymous())) {
-    return FALSE;
-  }
-
-  $client_id = \Drupal::config('github_connect.settings')->get('client_id');
-  $current_request = \Drupal::service('request_stack')->getCurrentRequest();
-
-  $destination = $current_request->query->get('destination');
-
-  $option = [
-    'query' => [
-      'client_id' => $client_id,
-      'scope' => 'user,public',
-      'uri' => urlencode($base_url . '/github/register/create?destination=' . $destination['destination']
-      ),
-    ],
-  ];
-  $link = Url::fromUri('https://github.com/login/oauth/authorize', $option);
-  $output = \Drupal::l(t('Login with GitHub'), $link);
-  \Drupal::logger('login link')->notice($output);
-  return $output;
 }

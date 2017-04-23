@@ -34,8 +34,8 @@ class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInte
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   A config factory for retrieving required config objects.
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
-
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ConfigFactoryInterface $config_factory) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->configFactory = $config_factory;
   }
 
@@ -44,6 +44,9 @@ class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInte
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
       $container->get('config.factory')
     );
   }
@@ -52,7 +55,6 @@ class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInte
    * {@inheritdoc}
    */
   protected function blockAccess(AccountInterface $account) {
-
     if ($account->isAnonymous()) {
       return AccessResult::allowed();
     }
@@ -66,7 +68,7 @@ class GithubConnectBlock extends BlockBase implements ContainerFactoryPluginInte
     global $base_url;
 
     $config = $this->configFactory->get('github_connect.settings');
-    $client_id = $config->get('github_connect_client_id');
+    $client_id = $config->get('client_id');
 
     $option = [
       'query' => [

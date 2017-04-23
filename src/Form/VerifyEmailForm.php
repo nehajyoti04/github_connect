@@ -110,7 +110,7 @@ class VerifyEmailForm extends FormBase {
     $name = $form_state->getValues()['name'];
     $password = $form_state->getValues()['pass'];
 
-    if ($this->githubConnectAuthenticate($name, $password) == FALSE) {
+    if ($this->githubConnectAuthenticateDrupal($name, $password) == FALSE) {
       $form_state->setErrorByName('pass', $this->t('Incorrect password.'));
     }
   }
@@ -144,7 +144,7 @@ class VerifyEmailForm extends FormBase {
    * @return int|bool
    *   The user's uid on success, or FALSE on failure to authenticate.
    */
-  public function githubConnectAuthenticate($name, $password) {
+  public function githubConnectAuthenticateDrupal($name, $password) {
     $uid = FALSE;
     if (!empty($name) && !empty($password)) {
       $account = user_load_by_name($name);

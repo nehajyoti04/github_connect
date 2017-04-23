@@ -59,7 +59,7 @@ class UsernameChooseForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, $user = '', $token = '') {
-    if (!$this->account->getAccountName()) {
+    if ($this->account->getAccountName()) {
       $account = $this->account->getAccountName();
     }
     else {
@@ -76,6 +76,7 @@ class UsernameChooseForm extends FormBase {
           '%account_name' => $account,
         )),
     );
+
     $form['name'] = array('#type' => 'hidden', '#value' => $account->name);
     $form['name_new'] = array(
       '#type' => 'textfield',

@@ -97,33 +97,32 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
     $uid = $this->account->id();
     $account = $this->account;
     $client_id = $this->config->get('client_id');
-    $client_secret = $this->config->get('github_connect_client_secret');
+    $client_secret = $this->config->get('client_secret');
 
-    // The response code after first call to GitHub.
-    $code = $_GET['code'];
-    $url = 'https://github.com/login/oauth/access_token?';
-    $options = array(
-      'data' => 'client_id=' . $client_id . '&client_secret=' . $client_secret . '&code=' . $code,
-      'method' => 'POST',
-    );
-    $url1 = $url . $options['data'];
+    // Assemble the URL to get the access token @Github.
+    $github_code = $_GET['code'];
+    $github_base_url = 'https://github.com/login/oauth/access_token?';
+    $github_parameters = "client_id=$client_id&client_secret=$client_secret&code=$github_code";
+    $url = $github_base_url . $github_parameters;
+
+    // Send the request to Github
     $client = $this->httpClient;
-    $response = $client->request('POST', $url1);
-    $body = (string) $response->getBody();
-    list($access_token) = explode('&', $body);
+    $response = $client->request('POST', $url);
+    $body = $response->getBody(true);
 
-    $token = explode('=', $access_token)[1];
+    // Get the actual access token
+    parse_str($body, $tokens);
+    $access_token = $tokens['access_token'];
 
-    if (empty($token)) {
+    if (empty($access_token)) {
       return FALSE;
     }
 
-    if ($token) {
+    if ($access_token) {
       // Check if a user exists for the token.
       // Get user details from GitHub to handle user association.
-      $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($token);
+      $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($access_token);
       if ($github_user && !empty($github_user['html_url'])) {
-
         // Check the authmap for an existing associated account.
         $account = $this->githubConnectUserExternalLoad($github_user['html_url']);
       }
@@ -135,28 +134,26 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
           $this->githubConnectService->githubConnectUserLogin($account);
           $redirect_url = $this->url('<front>');
           $response = new RedirectResponse($redirect_url);
-          $response->send();
           return $response;
         }
         else {
           // Otherwise register the user and log in.
-          $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($token);
+          $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($access_token);
 
           if ($existing_user_by_mail = user_load_by_mail($github_user['email'])) {
             // If a user with this email address exists, let him connect the
             // github account to his already created account.
-            return $this->redirect('github_connect.verify', array('uid' => $existing_user_by_mail->id(), 'token' => $token));
+            return $this->redirect('github_connect.verify', array('uid' => $existing_user_by_mail->id(), 'token' => $access_token));
           }
           else {
             // Otherwise make sure there is no account with the same username.
             if ($existing_user_by_name = user_load_by_name($github_user['login'])) {
-              return $this->redirect('github.username', array('user' => $existing_user_by_name->id(), 'token' => $token));
+              return $this->redirect('github.username', array('user' => $existing_user_by_name->id(), 'token' => $access_token));
             }
             else {
-              $this->githubConnectService->githubConnectRegister($github_user, $token);
+              $this->githubConnectService->githubConnectRegister($github_user, $access_token);
               $redirect_url = $this->url('<front>');
               $response = new RedirectResponse($redirect_url);
-              $response->send();
               return $response;
             }
           }
@@ -169,24 +166,21 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
           // If there is a user with the token, throw an error.
           drupal_set_message($this->t('Your GitHub account could not be connected, it is already coupled with another user.'), 'error');
           $response = new RedirectResponse('user/' . $account->id() . '/github');
-          $response->send();
           return $response;
         }
         else {
-          $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($token);
+          $github_user = $this->githubConnectService->githubConnectGetGithubUserInfo($access_token);
 
           if (!$github_user['email']) {
             drupal_set_message($this->t('We could not connect your GitHub account. You need to have a public email address registered with your GitHub account.'), 'error');
             $response = new RedirectResponse('user/' . $uid . '/github');
-            $response->send();
-            return $response;
+           return $response;
           }
 
           if ($github_user['html_url']) {
-            $this->githubConnectService->githubConnectSaveGithubUser($account, $token);
+            $this->githubConnectService->githubConnectSaveGithubUser($account, $access_token);
             drupal_set_message($this->t('Your GitHub account is now connected.'));
             $response = new RedirectResponse('user/' . $uid . '/github');
-            $response->send();
             return $response;
           }
         }
@@ -196,7 +190,6 @@ class GithubConnectController extends ControllerBase implements ContainerInjecti
       // If we didn't get a token, connection to Github failed.
       drupal_set_message($this->t('Failed connecting to GitHub.'), 'error');
       $response = new RedirectResponse('');
-      $response->send();
       return $response;
     }
     return FALSE;

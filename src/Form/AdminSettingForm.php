@@ -57,10 +57,10 @@ class AdminSettingForm extends ConfigFormBase {
       '#required' => TRUE,
     );
 
-    $form['github_connect_settings']['github_connect_client_secret'] = array(
+    $form['github_connect_settings']['client_secret'] = array(
       '#title' => $this->t('Client secret'),
       '#type' => 'textfield',
-      '#default_value' => $config->get('github_connect_client_secret'),
+      '#default_value' => $config->get('client_secret'),
       '#size' => 50,
       '#maxlength' => 50,
       '#required' => TRUE,
@@ -76,7 +76,7 @@ class AdminSettingForm extends ConfigFormBase {
 
     $this->config('github_connect.settings')
       ->set('client_id', $form_state->getValue('client_id'))
-      ->set('github_connect_client_secret', $form_state->getValue('github_connect_client_secret'))
+      ->set('client_secret', $form_state->getValue('client_secret'))
       ->save();
 
     // Set values in variables.
